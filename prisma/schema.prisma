@@ -1,0 +1,305 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  COACHING
+  STUDENT
+}
+
+enum CoachingMode {
+  OFFLINE
+  ONLINE
+  HYBRID
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum CourseType {
+  COURSE
+  BATCH
+}
+
+enum DeliveryMode {
+  OFFLINE
+  ONLINE
+  HYBRID
+}
+
+enum DemoSlotStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+  NO_SHOW
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OfferStatus {
+  ACTIVE
+  EXPIRED
+  DRAFT
+}
+
+model User {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String
+  phone           String?
+  role            UserRole
+  isActive        Boolean          @default(true)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  studentProfile  StudentProfile?
+  coachingProfile CoachingProfile?
+  auditLogs       AuditLog[]
+}
+
+model StudentProfile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  city              String?
+  classLevel        String?
+  targetExam        String?
+  schoolName        String?
+  preferredSubjects String[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+  reviews           Review[]
+}
+
+model CoachingProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  name               String
+  slug               String             @unique
+  tagline            String?
+  description        String?
+  foundedYear        Int?
+  phone              String?
+  alternatePhone     String?
+  email              String?
+  website            String?
+  mode               CoachingMode         @default(OFFLINE)
+  category           String?
+  targetExams        String[]
+  subjects           String[]
+  facilities         String[]
+  logoUrl            String?
+  coverImageUrl      String?
+  galleryImages      String[]
+  city               String?
+  locality           String?
+  addressLine1       String?
+  addressLine2       String?
+  pincode            String?
+  latitude           Float?
+  longitude          Float?
+  verificationStatus VerificationStatus @default(PENDING)
+  listingStatus      ListingStatus      @default(DRAFT)
+  avgRating          Float              @default(0)
+  reviewCount        Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branches           CoachingBranch[]
+  courses            Course[]
+  demoSlots          DemoSlot[]
+  bookings           Booking[]
+  reviews            Review[]
+  offers             Offer[]
+
+  @@index([city])
+  @@index([locality])
+}
+
+model CoachingBranch {
+  id         String          @id @default(cuid())
+  coachingId String
+  branchName String
+  city       String?
+  locality   String?
+  address    String?
+  phone      String?
+  isPrimary  Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  coaching   CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  courses    Course[]
+  demoSlots  DemoSlot[]
+}
+
+model Course {
+  id              String          @id @default(cuid())
+  coachingId      String
+  branchId        String?
+  title           String
+  slug            String          @unique
+  description     String?
+  courseType      CourseType      @default(BATCH)
+  targetExam      String?
+  classLevel      String?
+  subjectStream   String?
+  facultySummary  String?
+  language        String?
+  batchSize       Int?
+  deliveryMode    DeliveryMode    @default(OFFLINE)
+  fees            Float?
+  discountedFees  Float?
+  durationText    String?
+  startDate       DateTime?
+  endDate         DateTime?
+  scheduleSummary String?
+  status          ListingStatus   @default(DRAFT)
+  isFeatured      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  coaching        CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  branch          CoachingBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  demoSlots       DemoSlot[]
+  bookings        Booking[]
+  reviews         Review[]
+
+  @@index([coachingId])
+  @@index([targetExam])
+}
+
+model DemoSlot {
+  id              String          @id @default(cuid())
+  courseId        String
+  coachingId      String
+  branchId        String?
+  topic           String
+  teacherName     String
+  teacherProfile  String?
+  demoDate        DateTime
+  startTime       String
+  endTime         String
+  durationMinutes Int
+  capacity        Int
+  bookedCount     Int             @default(0)
+  venueName       String?
+  venueAddress    String?
+  instructions    String?
+  status          DemoSlotStatus  @default(OPEN)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  course          Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  coaching        CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  branch          CoachingBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  bookings        Booking[]
+
+  @@index([courseId])
+  @@index([demoDate])
+  @@index([coachingId])
+}
+
+model Booking {
+  id          String          @id @default(cuid())
+  studentId   String
+  demoSlotId  String
+  courseId    String
+  coachingId  String
+  bookingCode String          @unique
+  status      BookingStatus   @default(CONFIRMED)
+  emailStatus EmailStatus     @default(PENDING)
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  student     StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  demoSlot    DemoSlot        @relation(fields: [demoSlotId], references: [id], onDelete: Cascade)
+  course      Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  coaching    CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, demoSlotId])
+  @@index([studentId])
+  @@index([coachingId])
+}
+
+model Review {
+  id         String          @id @default(cuid())
+  studentId  String
+  coachingId String
+  courseId   String?
+  rating     Int
+  title      String?
+  comment    String?
+  status     ReviewStatus    @default(PENDING)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  student    StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  coaching   CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  course     Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([coachingId])
+  @@index([status])
+}
+
+model Offer {
+  id          String          @id @default(cuid())
+  coachingId  String
+  title       String
+  description String?
+  validFrom   DateTime
+  validTill   DateTime
+  status      OfferStatus     @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  coaching    CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+
+  @@index([coachingId])
+  @@index([status])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  actorRole   UserRole
+  action      String
+  entityType  String
+  entityId    String
+  metaJson    Json?
+  createdAt   DateTime @default(now())
+  actor       User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+}
