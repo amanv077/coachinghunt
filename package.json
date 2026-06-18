@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "db:seed:mp": "node --env-file=.env prisma/seed-mp-coachings.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
