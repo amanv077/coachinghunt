@@ -4,7 +4,38 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
+
+function ProfileSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-8 w-40" />
+      <Card className="mt-6 max-w-lg">
+        <Skeleton className="h-4 w-56" />
+        <div className="mt-4 space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+          <Skeleton className="h-11 w-32" />
+        </div>
+      </Card>
+    </div>
+  );
+}
 
 export default function StudentProfilePage() {
   const { addToast } = useToast();
@@ -41,19 +72,40 @@ export default function StudentProfilePage() {
     addToast(data.success ? "Profile updated" : data.message, data.success ? "success" : "error");
   }
 
-  if (!profile) return <p className="text-muted">Loading...</p>;
+  if (!profile) return <ProfileSkeleton />;
 
   return (
     <div>
       <h1 className="text-2xl font-bold">My Profile</h1>
+      <p className="mt-1 text-muted">Update your details to get better coaching matches</p>
       <Card className="mt-6 max-w-lg">
-        <p className="text-sm text-muted">{profile.user?.name} · {profile.user?.email}</p>
+        <p className="text-sm text-muted">
+          {profile.user?.name} · {profile.user?.email}
+        </p>
         <form onSubmit={handleSave} className="mt-4 space-y-4">
-          <Input label="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-          <Input label="Class Level" value={form.classLevel} onChange={(e) => setForm({ ...form, classLevel: e.target.value })} />
-          <Input label="Target Exam" value={form.targetExam} onChange={(e) => setForm({ ...form, targetExam: e.target.value })} />
-          <Input label="School Name" value={form.schoolName} onChange={(e) => setForm({ ...form, schoolName: e.target.value })} />
-          <Button type="submit" loading={loading}>Save Profile</Button>
+          <Input
+            label="City"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+          />
+          <Input
+            label="Class Level"
+            value={form.classLevel}
+            onChange={(e) => setForm({ ...form, classLevel: e.target.value })}
+          />
+          <Input
+            label="Target Exam"
+            value={form.targetExam}
+            onChange={(e) => setForm({ ...form, targetExam: e.target.value })}
+          />
+          <Input
+            label="School Name"
+            value={form.schoolName}
+            onChange={(e) => setForm({ ...form, schoolName: e.target.value })}
+          />
+          <Button type="submit" loading={loading} className="w-full min-h-11 md:w-auto">
+            Save Profile
+          </Button>
         </form>
       </Card>
     </div>

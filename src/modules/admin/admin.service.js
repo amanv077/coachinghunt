@@ -91,26 +91,51 @@ export async function getStudentDashboard(userId) {
   const student = await prisma.studentProfile.findUnique({ where: { userId } });
   if (!student) return null;
 
-  const [bookings, offers, topCoachings] = await Promise.all([
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const personalisedWhere = {
+    listingStatus: "ACTIVE",
+    ...(student.city ? { city: { contains: student.city, mode: "insensitive" } } : {}),
+    ...(student.targetExam ? { targetExams: { has: student.targetExam } } : {}),
+  };
+
+  const [upcomingBookings, attendedCount, offers, personalisedCoachings] = await Promise.all([
     prisma.booking.findMany({
-      where: { studentId: student.id, status: "CONFIRMED" },
+      where: {
+        studentId: student.id,
+        status: "CONFIRMED",
+        demoSlot: { demoDate: { gte: today } },
+      },
       include: { demoSlot: true, coaching: true, course: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { demoSlot: { demoDate: "asc" } },
       take: 5,
+    }),
+    prisma.booking.count({
+      where: { studentId: student.id, status: "ATTENDED" },
     }),
     prisma.offer.findMany({
       where: { status: "ACTIVE", validTill: { gte: new Date() } },
       take: 4,
-      include: { coaching: { select: { name: true } } },
+      include: { coaching: { select: { name: true, slug: true } } },
     }),
     prisma.coachingProfile.findMany({
-      where: { listingStatus: "ACTIVE" },
+      where: personalisedWhere,
       orderBy: { avgRating: "desc" },
       take: 4,
     }),
   ]);
 
-  return { profile: student, bookings, offers, topCoachings };
+  let topCoachings = personalisedCoachings;
+  if (topCoachings.length === 0) {
+    topCoachings = await prisma.coachingProfile.findMany({
+      where: { listingStatus: "ACTIVE" },
+      orderBy: { avgRating: "desc" },
+      take: 4,
+    });
+  }
+
+  return { profile: student, upcomingBookings, attendedCount, offers, topCoachings };
 }
 
 export async function getCoachingDashboard(userId) {

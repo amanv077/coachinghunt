@@ -1,41 +1,120 @@
+import Link from "next/link";
 import { getStudentBookings } from "@/modules/bookings/bookings.service";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { CancelBookingButton } from "@/components/shared/CancelBookingButton";
+import {
+  buildSearchHref,
+  formatDemoDate,
+  getRelativeDateLabel,
+  startOfToday,
+} from "@/lib/utils/helpers";
+
+function BookingCard({ booking, showCancel = false }) {
+  return (
+    <Card className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <div className="min-w-0 flex-1">
+        <p className="font-medium">{booking.coaching.name}</p>
+        <p className="text-sm text-muted">
+          {booking.course?.title || "Demo"} · {booking.demoSlot.topic}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <p className="text-sm text-muted">
+            {formatDemoDate(booking.demoSlot.demoDate)} · {booking.demoSlot.startTime}
+          </p>
+          <Badge variant="default">{getRelativeDateLabel(booking.demoSlot.demoDate)}</Badge>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge variant={booking.status === "CONFIRMED" ? "success" : "default"}>
+          {booking.status}
+        </Badge>
+        <Badge variant="primary">{booking.bookingCode}</Badge>
+        {showCancel && booking.status === "CONFIRMED" && (
+          <CancelBookingButton bookingId={booking.id} />
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export default async function StudentBookingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
   const bookings = await getStudentBookings(session.user.id);
+  const today = startOfToday();
+
+  const upcoming = bookings
+    .filter(
+      (booking) =>
+        booking.status === "CONFIRMED" && new Date(booking.demoSlot.demoDate) >= today
+    )
+    .sort(
+      (a, b) => new Date(a.demoSlot.demoDate) - new Date(b.demoSlot.demoDate)
+    );
+
+  const past = bookings
+    .filter(
+      (booking) =>
+        booking.status !== "CONFIRMED" ||
+        new Date(booking.demoSlot.demoDate) < today
+    )
+    .sort(
+      (a, b) => new Date(b.demoSlot.demoDate) - new Date(a.demoSlot.demoDate)
+    );
+
+  const searchHref = buildSearchHref();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">My Bookings</h1>
-      <p className="text-muted">All your demo session bookings</p>
-      <div className="mt-6 space-y-4">
-        {bookings.length === 0 ? (
-          <EmptyState title="No bookings yet" description="Book a demo session to get started." />
-        ) : (
-          bookings.map((b) => (
-            <Card key={b.id} className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">{b.coaching.name}</p>
-                <p className="text-sm text-muted">{b.course.title} · {b.demoSlot.topic}</p>
-                <p className="text-sm text-muted">{new Date(b.demoSlot.demoDate).toLocaleDateString()} · {b.demoSlot.startTime}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={b.status === "CONFIRMED" ? "success" : "default"}>{b.status}</Badge>
-                <Badge variant="primary">{b.bookingCode}</Badge>
-                {b.status === "CONFIRMED" && <CancelBookingButton bookingId={b.id} />}
-              </div>
-            </Card>
-          ))
-        )}
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold">My Bookings</h1>
+        <p className="mt-1 text-muted">All your demo session bookings</p>
       </div>
+
+      <section>
+        <SectionHeader title="Upcoming" />
+        {upcoming.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white px-6 py-12 text-center">
+            <h3 className="text-lg font-semibold text-foreground">No upcoming demos</h3>
+            <p className="mt-2 max-w-md text-sm text-muted">
+              Book a free demo session to get started.
+            </p>
+            <Link href={searchHref} className="mt-4 w-full sm:w-auto">
+              <Button className="w-full min-h-11 sm:w-auto">Find Coachings</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {upcoming.map((booking) => (
+              <BookingCard key={booking.id} booking={booking} showCancel />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <SectionHeader title="Past" />
+        {past.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-surface-muted/50 px-6 py-12 text-center">
+            <h3 className="text-lg font-semibold text-foreground">No past bookings</h3>
+            <p className="mt-2 text-sm text-muted">
+              Completed and cancelled demos will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {past.map((booking) => (
+              <BookingCard key={booking.id} booking={booking} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

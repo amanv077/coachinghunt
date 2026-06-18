@@ -12,5 +12,9 @@ export function CancelBookingButton({ bookingId }) {
     router.refresh();
   }
 
-  return <Button variant="ghost" size="sm" onClick={handleCancel}>Cancel</Button>;
+  return (
+    <Button variant="ghost" size="sm" className="text-danger hover:bg-red-50" onClick={handleCancel}>
+      Cancel
+    </Button>
+  );
 }
