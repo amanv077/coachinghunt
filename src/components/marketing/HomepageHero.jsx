@@ -10,18 +10,53 @@ import { cn } from "@/lib/utils/cn";
 const quickFilters = ["JEE", "NEET", "Boards", "Foundation"];
 
 const stats = [
-  { value: "500+", label: "Coachings listed" },
-  { value: "10k+", label: "Demo bookings" },
-  { value: "50+", label: "Cities covered" },
+  {
+    value: "500+",
+    label: "Coachings listed",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
+  {
+    value: "10k+",
+    label: "Demo bookings",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    value: "50+",
+    label: "Cities covered",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+];
+
+const trustBadges = [
+  { label: "Free to use", icon: "✓" },
+  { label: "Verified institutes", icon: "✓" },
+  { label: "Instant confirmation", icon: "✓" },
 ];
 
 export function HomepageHero() {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const [city, setCity] = useState("");
 
   function handleSearch(e) {
     e.preventDefault();
-    router.push(`/search?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (city) params.set("city", city);
+    router.push(`/search?${params.toString()}`);
   }
 
   function quickSearch(exam) {
@@ -70,18 +105,28 @@ export function HomepageHero() {
           className="mx-auto mt-10 max-w-2xl"
         >
           <div className="glass-card rounded-2xl p-2 shadow-lg">
-            <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
+            <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <input
                 type="text"
-                placeholder="Search coaching, city, exam..."
+                placeholder="Search coaching or exam..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 className={cn(
-                  "min-h-[52px] flex-1 rounded-xl border-0 bg-white px-5 text-sm outline-none",
-                  "placeholder:text-muted focus:ring-2 focus:ring-secondary/25"
+                  "min-h-[52px] flex-1 rounded-xl border border-secondary/30 bg-white px-5 text-sm outline-none sm:min-w-[140px]",
+                  "placeholder:text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/25"
                 )}
               />
-              <Button type="submit" size="lg" className="min-h-[52px] rounded-xl px-8 sm:shrink-0">
+              <input
+                type="text"
+                placeholder="City"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className={cn(
+                  "min-h-[52px] w-full rounded-xl border border-secondary/30 bg-white px-5 text-sm outline-none sm:w-auto sm:min-w-[120px] sm:flex-none",
+                  "placeholder:text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/25"
+                )}
+              />
+              <Button type="submit" size="lg" className="min-h-[52px] w-full rounded-xl px-8 sm:w-auto sm:shrink-0">
                 Search
               </Button>
             </form>
@@ -94,7 +139,7 @@ export function HomepageHero() {
                 key={exam}
                 type="button"
                 onClick={() => quickSearch(exam)}
-                className="rounded-full border border-secondary/20 bg-white px-3.5 py-1.5 text-xs font-medium text-secondary transition hover:border-secondary hover:bg-secondary-light"
+                className="min-h-9 cursor-pointer rounded-full border border-secondary/20 bg-white px-3.5 py-1.5 text-xs font-medium text-secondary transition hover:border-secondary hover:bg-secondary-light"
               >
                 {exam}
               </button>
@@ -110,9 +155,31 @@ export function HomepageHero() {
         >
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-secondary-light text-secondary">
+                {stat.icon}
+              </div>
               <p className="text-2xl font-bold text-secondary sm:text-3xl">{stat.value}</p>
               <p className="mt-1 text-xs text-muted sm:text-sm">{stat.label}</p>
             </div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mx-auto mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-6"
+        >
+          {trustBadges.map((badge) => (
+            <span
+              key={badge.label}
+              className="inline-flex items-center gap-1.5 rounded-full border border-secondary/15 bg-white/70 px-3 py-1.5 text-xs font-medium text-foreground"
+            >
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-success/15 text-[10px] font-bold text-success">
+                {badge.icon}
+              </span>
+              {badge.label}
+            </span>
           ))}
         </motion.div>
 

@@ -42,21 +42,77 @@ export default function StudentSignupPage() {
   }
 
   return (
-    <Card>
-      <h1 className="text-2xl font-bold">Student Signup</h1>
-      <p className="mt-1 text-sm text-muted">Create your account to book demo sessions</p>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <Input label="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-        <Input label="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-        <Input label="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
-        <Input label="Target Exam" placeholder="JEE, NEET, etc." value={form.targetExam} onChange={(e) => setForm({ ...form, targetExam: e.target.value })} required />
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button type="submit" className="w-full" loading={loading}>Create Account</Button>
+    <Card className="shadow-md">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-2xl font-bold sm:text-3xl">Create student account</h1>
+        <p className="mt-2 text-sm text-muted">Book demo sessions and track your coaching search</p>
+        <p className="mt-3 text-xs text-secondary">
+          Join 10,000+ students already discovering coachings on CoachingHunt
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground">Personal info</legend>
+          <Input
+            label="Full Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <Input
+            label="Phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground">Your goals</legend>
+          <Input
+            label="City"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            required
+          />
+          <Input
+            label="Target Exam"
+            placeholder="JEE, NEET, Boards, etc."
+            value={form.targetExam}
+            onChange={(e) => setForm({ ...form, targetExam: e.target.value })}
+            required
+          />
+        </fieldset>
+
+        {error && (
+          <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+        )}
+        <Button type="submit" className="min-h-11 w-full" loading={loading}>
+          Create Account
+        </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
-        Already have an account? <Link href="/login" className="text-primary">Login</Link>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        Already have an account?{" "}
+        <Link href="/login" className="font-semibold text-secondary hover:underline">
+          Login
+        </Link>
       </p>
     </Card>
   );

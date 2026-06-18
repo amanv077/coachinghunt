@@ -44,23 +44,96 @@ export default function CoachingSignupPage() {
   }
 
   return (
-    <Card>
-      <h1 className="text-2xl font-bold">Coaching Signup</h1>
-      <p className="mt-1 text-sm text-muted">List your institute and get student leads</p>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <Input label="Contact Person Name" value={form.contactPersonName} onChange={(e) => setForm({ ...form, contactPersonName: e.target.value })} required />
-        <Input label="Coaching Name" value={form.coachingName} onChange={(e) => setForm({ ...form, coachingName: e.target.value })} required />
-        <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-        <Input label="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-        <Input label="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
-        <Input label="Locality" value={form.locality} onChange={(e) => setForm({ ...form, locality: e.target.value })} required />
-        <Input label="Category" placeholder="Engineering Entrance" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required />
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button type="submit" className="w-full" loading={loading}>Create Coaching Account</Button>
+    <Card className="shadow-md">
+      <div className="border-b border-border pb-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+          Step 1 of 1 — Create your profile
+        </p>
+        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">List your coaching</h1>
+        <p className="mt-2 text-sm text-muted">Get discovered by students and receive demo bookings</p>
+        <p className="mt-3 text-xs text-secondary">
+          500+ institutes already listed on CoachingHunt
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground">Institute details</legend>
+          <Input
+            label="Contact Person Name"
+            value={form.contactPersonName}
+            onChange={(e) => setForm({ ...form, contactPersonName: e.target.value })}
+            required
+          />
+          <Input
+            label="Coaching Name"
+            value={form.coachingName}
+            onChange={(e) => setForm({ ...form, coachingName: e.target.value })}
+            required
+          />
+          <Input
+            label="Category"
+            placeholder="Engineering Entrance, Medical, etc."
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            required
+          />
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground">Account & contact</legend>
+          <Input
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <Input
+            label="Phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground">Location</legend>
+          <Input
+            label="City"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            required
+          />
+          <Input
+            label="Locality"
+            value={form.locality}
+            onChange={(e) => setForm({ ...form, locality: e.target.value })}
+            required
+          />
+        </fieldset>
+
+        {error && (
+          <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+        )}
+        <Button type="submit" className="min-h-11 w-full" loading={loading}>
+          Create Coaching Account
+        </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
-        Already have an account? <Link href="/login" className="text-primary">Login</Link>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        Already have an account?{" "}
+        <Link href="/login" className="font-semibold text-secondary hover:underline">
+          Login
+        </Link>
       </p>
     </Card>
   );

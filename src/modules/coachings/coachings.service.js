@@ -21,7 +21,7 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
   const orderBy = sort === "rating" ? { avgRating: "desc" } : { createdAt: "desc" };
   const skip = (page - 1) * limit;
 
-  const [items, total] = await Promise.all([
+  const [rows, total] = await Promise.all([
     prisma.coachingProfile.findMany({
       where,
       orderBy,
@@ -42,10 +42,22 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
         avgRating: true,
         reviewCount: true,
         verificationStatus: true,
+        _count: {
+          select: {
+            demoSlots: {
+              where: { status: "OPEN", demoDate: { gte: new Date() } },
+            },
+          },
+        },
       },
     }),
     prisma.coachingProfile.count({ where }),
   ]);
+
+  const items = rows.map(({ _count, ...coaching }) => ({
+    ...coaching,
+    openDemoCount: _count.demoSlots,
+  }));
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
@@ -59,12 +71,10 @@ export async function getCoachingBySlugOrId(identifier, isAuthenticated = false)
     include: {
       courses: {
         where: { status: "ACTIVE" },
-        take: isAuthenticated ? undefined : 3,
       },
       demoSlots: {
         where: { status: { in: ["OPEN", "FULL"] }, demoDate: { gte: new Date() } },
         orderBy: { demoDate: "asc" },
-        take: isAuthenticated ? undefined : 5,
       },
       reviews: {
         where: { status: "APPROVED" },
@@ -79,12 +89,30 @@ export async function getCoachingBySlugOrId(identifier, isAuthenticated = false)
   if (!isAuthenticated) {
     return {
       ...coaching,
-      description: coaching.description?.slice(0, 200) + (coaching.description?.length > 200 ? "..." : ""),
       email: undefined,
       phone: undefined,
       alternatePhone: undefined,
       addressLine1: undefined,
       addressLine2: undefined,
+      pincode: undefined,
+      website: undefined,
+      latitude: undefined,
+      longitude: undefined,
+      courses: coaching.courses?.map((course) => ({
+        ...course,
+        fees: undefined,
+        discountedFees: undefined,
+        scheduleSummary: undefined,
+        batchSize: undefined,
+        facultySummary: undefined,
+        description: course.description?.slice(0, 120) + (course.description?.length > 120 ? "…" : ""),
+      })),
+      demoSlots: coaching.demoSlots?.map((slot) => ({
+        id: slot.id,
+        topic: slot.topic,
+        demoDate: slot.demoDate,
+        status: slot.status,
+      })),
     };
   }
 
@@ -112,9 +140,37 @@ export async function updateCoachingProfile(userId, data) {
 }
 
 export async function getFeaturedCoachings(limit = 6) {
-  return prisma.coachingProfile.findMany({
+  const rows = await prisma.coachingProfile.findMany({
     where: { listingStatus: "ACTIVE", verificationStatus: "VERIFIED" },
     orderBy: { avgRating: "desc" },
     take: limit,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      tagline: true,
+      city: true,
+      locality: true,
+      category: true,
+      targetExams: true,
+      subjects: true,
+      logoUrl: true,
+      coverImageUrl: true,
+      avgRating: true,
+      reviewCount: true,
+      verificationStatus: true,
+      _count: {
+        select: {
+          demoSlots: {
+            where: { status: "OPEN", demoDate: { gte: new Date() } },
+          },
+        },
+      },
+    },
   });
+
+  return rows.map(({ _count, ...coaching }) => ({
+    ...coaching,
+    openDemoCount: _count.demoSlots,
+  }));
 }

@@ -8,7 +8,7 @@ export function AuthHeader() {
       </Link>
       <Link
         href="/"
-        className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-secondary-light hover:text-secondary"
+        className="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-secondary-light hover:text-secondary"
       >
         ← Back to Home
       </Link>

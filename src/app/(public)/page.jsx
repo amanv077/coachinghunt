@@ -3,6 +3,7 @@ import { HomepageHero } from "@/components/marketing/HomepageHero";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { BenefitsSection } from "@/components/marketing/BenefitsSection";
 import { FeaturedCoachings } from "@/components/marketing/FeaturedCoachings";
+import { TestimonialsSection } from "@/components/marketing/TestimonialsSection";
 import { CoachingCta } from "@/components/marketing/CoachingCta";
 
 export const metadata = {
@@ -18,6 +19,7 @@ export default async function HomePage() {
       <HomepageHero />
       <HowItWorks />
       <FeaturedCoachings coachings={featured} />
+      <TestimonialsSection />
       <BenefitsSection />
       <CoachingCta />
     </>

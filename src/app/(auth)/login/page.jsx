@@ -43,9 +43,12 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-      <p className="mt-1 text-sm text-muted">Sign in to your CoachingHunt account</p>
+    <Card className="shadow-md">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted">Sign in to your CoachingHunt account</p>
+      </div>
+
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <Input
           label="Email"
@@ -54,28 +57,38 @@ export default function LoginPage() {
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
-        <Input
-          label="Password"
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-        />
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button type="submit" className="w-full" loading={loading}>
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-sm font-medium text-foreground">Password</label>
+            <Link href="/contact" className="text-xs font-medium text-secondary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <Input
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+        </div>
+        {error && (
+          <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+        )}
+        <Button type="submit" className="min-h-11 w-full" loading={loading}>
           Sign In
         </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
+
+      <div className="mt-6 border-t border-border pt-6 text-center text-sm text-muted">
         New here?{" "}
-        <Link href="/signup/student" className="text-primary hover:underline">
+        <Link href="/signup/student" className="font-semibold text-secondary hover:underline">
           Student signup
         </Link>{" "}
         or{" "}
-        <Link href="/signup/coaching" className="text-primary hover:underline">
+        <Link href="/signup/coaching" className="font-semibold text-secondary hover:underline">
           Coaching signup
         </Link>
-      </p>
+      </div>
     </Card>
   );
 }

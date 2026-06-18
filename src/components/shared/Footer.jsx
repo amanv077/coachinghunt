@@ -8,19 +8,19 @@ export function Footer() {
           <div>
             <h3 className="text-xl font-bold text-white">CoachingHunt</h3>
             <p className="mt-1 max-w-md text-sm text-white/75">
-              Discover, compare, and book demo sessions with top offline coaching institutes.
+              Discover, compare, and book demo sessions with top offline coaching institutes across India.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Link
               href="/signup/student"
-              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-secondary transition hover:bg-secondary-light"
+              className="min-h-11 rounded-lg bg-white px-5 py-2.5 text-center text-sm font-semibold text-secondary transition hover:bg-secondary-light"
             >
               Student Signup
             </Link>
             <Link
               href="/signup/coaching"
-              className="rounded-lg border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="min-h-11 rounded-lg border border-white/30 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/10"
             >
               List Coaching
             </Link>
