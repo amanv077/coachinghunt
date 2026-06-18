@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CoachingCard } from "@/components/marketing/CoachingCard";
+import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 
 export default async function StudentDashboardPage() {
   const session = await getSession();
@@ -65,9 +65,7 @@ export default async function StudentDashboardPage() {
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Top Coachings</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {data.topCoachings.map((c) => <CoachingCard key={c.id} coaching={c} />)}
-        </div>
+        <CoachingCardGrid coachings={data.topCoachings} />
       </section>
     </div>
   );

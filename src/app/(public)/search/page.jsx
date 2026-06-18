@@ -1,13 +1,17 @@
 import { Suspense } from "react";
 import { listPublicCoachings } from "@/modules/coachings/coachings.service";
-import { CoachingCard } from "@/components/marketing/CoachingCard";
+import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   SearchFilters,
   ActiveFilterChips,
   SearchResultHeader,
+  SearchToolbar,
+  SearchPagination,
 } from "@/components/marketing/SearchFilters";
 import { Skeleton } from "@/components/ui/Skeleton";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 
 export const metadata = {
   title: "Search Coachings",
@@ -16,18 +20,34 @@ export const metadata = {
 
 export default async function SearchPage({ searchParams }) {
   const params = await searchParams;
+  const page = Number(params.page || 1);
   const result = await listPublicCoachings({
     q: params.q,
     city: params.city,
     targetExam: params.targetExam,
     subject: params.subject,
-    page: Number(params.page || 1),
+    page,
+    sort: params.sort || "newest",
   });
+
+  const hasFilters = !!(params.q || params.city || params.targetExam || params.subject);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold sm:text-3xl">Find Coachings</h1>
-      <SearchResultHeader total={result.total} params={params} />
+      <div>
+        <h1 className="text-2xl font-bold sm:text-3xl">Find Coachings</h1>
+        <p className="mt-1 max-w-2xl text-sm text-muted sm:text-base">
+          Browse verified institutes, compare courses, and book free demo sessions near you.
+        </p>
+      </div>
+
+      <Suspense fallback={<Skeleton className="mt-6 h-24 w-full rounded-2xl" />}>
+        <SearchToolbar />
+      </Suspense>
+
+      <div className="mt-4">
+        <SearchResultHeader total={result.total} params={params} />
+      </div>
 
       <div className="mt-4 space-y-3 lg:hidden">
         <Suspense fallback={<Skeleton className="h-11 w-full" />}>
@@ -49,16 +69,38 @@ export default async function SearchPage({ searchParams }) {
             </Suspense>
           </div>
           {result.items.length === 0 ? (
-            <EmptyState
-              title="No coachings found"
-              description="Try adjusting your filters or search terms."
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {result.items.map((coaching) => (
-                <CoachingCard key={coaching.id} coaching={coaching} />
-              ))}
+            <div className="space-y-4">
+              <EmptyState
+                title="No coachings found"
+                description={
+                  hasFilters
+                    ? "Try a different city, remove a filter, or search by exam name."
+                    : "Start by searching your city or pick a popular exam above."
+                }
+              />
+              <div className="flex justify-center">
+                {hasFilters ? (
+                  <Link href="/search">
+                    <Button variant="secondary" className="min-h-11">
+                      Clear all filters
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/search?targetExam=JEE">
+                    <Button variant="secondary" className="min-h-11">
+                      Browse JEE coachings
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
+          ) : (
+            <>
+              <CoachingCardGrid coachings={result.items} />
+              <Suspense fallback={null}>
+                <SearchPagination page={result.page} totalPages={result.totalPages} />
+              </Suspense>
+            </>
           )}
         </div>
       </div>

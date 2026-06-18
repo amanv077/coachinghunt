@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { isCoachingDashboardRoute } from "@/lib/coaching/routes";
 
 export default withAuth(
   function middleware(req) {
@@ -9,7 +10,7 @@ export default withAuth(
     if (pathname.startsWith("/student") && role !== "STUDENT") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    if (pathname.startsWith("/coaching") && role !== "COACHING") {
+    if (isCoachingDashboardRoute(pathname) && role !== "COACHING") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
     if (pathname.startsWith("/admin") && role !== "ADMIN") {
@@ -22,11 +23,10 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        if (
-          pathname.startsWith("/student") ||
-          pathname.startsWith("/coaching") ||
-          pathname.startsWith("/admin")
-        ) {
+        if (pathname.startsWith("/student") || pathname.startsWith("/admin")) {
+          return !!token;
+        }
+        if (isCoachingDashboardRoute(pathname)) {
           return !!token;
         }
         return true;
@@ -36,5 +36,14 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/student/:path*", "/coaching/:path*", "/admin/:path*"],
+  matcher: [
+    "/student/:path*",
+    "/coaching/dashboard/:path*",
+    "/coaching/profile/:path*",
+    "/coaching/courses/:path*",
+    "/coaching/demo-slots/:path*",
+    "/coaching/bookings/:path*",
+    "/coaching/offers/:path*",
+    "/admin/:path*",
+  ],
 };

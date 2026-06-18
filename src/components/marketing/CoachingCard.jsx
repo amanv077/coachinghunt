@@ -1,5 +1,7 @@
-import Link from "next/link";
+"use client";
+
 import { Badge } from "@/components/ui/Badge";
+import { cn } from "@/lib/utils/cn";
 
 function StarIcon({ className }) {
   return (
@@ -18,7 +20,15 @@ function MapPinIcon({ className }) {
   );
 }
 
-export function CoachingCard({ coaching }) {
+function BookIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  );
+}
+
+export function CoachingCard({ coaching, onPreview }) {
   const initials = coaching.name
     ?.split(" ")
     .map((w) => w[0])
@@ -26,80 +36,131 @@ export function CoachingCard({ coaching }) {
     .slice(0, 2)
     .toUpperCase();
 
-  const demoCount = coaching.openDemoCount ?? coaching._count?.openDemoSlots ?? 0;
+  const demoCount = coaching.openDemoCount ?? coaching._count?.demoSlots ?? 0;
+  const courseCount = coaching.courseCount ?? coaching._count?.courses ?? 0;
 
-  return (
-    <Link href={`/coaching/${coaching.slug}`} className="group block h-full">
-      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-secondary/30 hover:shadow-lg">
-        <div className="relative h-28 bg-gradient-to-br from-secondary-light to-secondary-muted/40">
-          {coaching.coverImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={coaching.coverImageUrl}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(44,76,156,0.15),transparent_60%)]" />
-          <div className="absolute bottom-0 left-5 translate-y-1/2">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary text-lg font-bold text-white shadow-md ring-4 ring-white">
-              {coaching.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
+  const cardContent = (
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-secondary/30 hover:shadow-lg">
+      <div className="relative h-28 bg-gradient-to-br from-secondary-light to-secondary-muted/40">
+        {coaching.coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coaching.coverImageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(44,76,156,0.15),transparent_60%)]" />
+        <div className="absolute bottom-0 left-5 translate-y-1/2">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary text-lg font-bold text-white shadow-md ring-4 ring-white">
+            {coaching.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
+            ) : (
+              initials
+            )}
           </div>
+        </div>
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
           {coaching.verificationStatus === "VERIFIED" && (
-            <Badge variant="success" className="absolute right-4 top-4">
-              Verified
+            <Badge variant="success">Verified</Badge>
+          )}
+          {demoCount > 0 && (
+            <Badge variant="primary" className="bg-white/95 text-secondary shadow-sm">
+              {demoCount} demo{demoCount !== 1 ? "s" : ""}
             </Badge>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-1 flex-col p-5 pt-10">
+      <div className="flex flex-1 flex-col p-5 pt-10">
+        <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-foreground transition group-hover:text-secondary">
             {coaching.name}
           </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
-            <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-secondary" />
-            {coaching.locality}, {coaching.city}
-          </p>
-          {coaching.tagline && (
-            <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-muted">
-              {coaching.tagline}
-            </p>
-          )}
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {coaching.targetExams?.slice(0, 3).map((exam) => (
-              <Badge key={exam} variant="primary">
-                {exam}
-              </Badge>
-            ))}
-          </div>
-          <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                demoCount > 0 ? "text-success" : "text-muted"
-              }`}
-            >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${demoCount > 0 ? "bg-success" : "bg-border"}`}
-              />
-              {demoCount > 0 ? `${demoCount} demo${demoCount !== 1 ? "s" : ""} available` : "No demos"}
-            </span>
-            <span className="flex items-center gap-1 text-sm font-semibold text-secondary">
-              <StarIcon className="h-4 w-4 text-warning" />
-              {coaching.avgRating?.toFixed(1) || "0.0"}
-              <span className="font-normal text-muted">({coaching.reviewCount || 0})</span>
-            </span>
-          </div>
-          <p className="mt-3 text-xs font-medium text-secondary opacity-0 transition group-hover:opacity-100">
-            View profile →
-          </p>
+          <span className="flex shrink-0 items-center gap-0.5 text-sm font-semibold text-secondary">
+            <StarIcon className="h-3.5 w-3.5 text-warning" />
+            {coaching.avgRating?.toFixed(1) || "0.0"}
+          </span>
         </div>
-      </article>
-    </Link>
+
+        <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
+          <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-secondary" />
+          {[coaching.locality, coaching.city].filter(Boolean).join(", ") || "Location not listed"}
+        </p>
+
+        {coaching.tagline && (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
+            {coaching.tagline}
+          </p>
+        )}
+
+        {!coaching.tagline && coaching.description && (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
+            {coaching.description}
+          </p>
+        )}
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {coaching.targetExams?.slice(0, 3).map((exam) => (
+            <Badge key={exam} variant="primary">{exam}</Badge>
+          ))}
+          {coaching.subjects?.slice(0, 2).map((subject) => (
+            <Badge key={subject} variant="default">{subject}</Badge>
+          ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
+          {courseCount > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <BookIcon className="h-3.5 w-3.5 text-secondary" />
+              {courseCount} course{courseCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          {coaching.category && (
+            <span className="rounded-full bg-secondary-light px-2 py-0.5 font-medium text-secondary">
+              {coaching.category}
+            </span>
+          )}
+          {coaching.mode && (
+            <span>{coaching.mode}</span>
+          )}
+        </div>
+
+        <div className="mt-auto flex items-center justify-between border-t border-border pt-4">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 text-xs font-medium",
+              demoCount > 0 ? "text-success" : "text-muted"
+            )}
+          >
+            <span className={cn("h-1.5 w-1.5 rounded-full", demoCount > 0 ? "bg-success" : "bg-border")} />
+            {demoCount > 0 ? "Demos available" : "No demos yet"}
+          </span>
+          <span className="text-xs font-medium text-secondary">
+            {coaching.reviewCount || 0} review{(coaching.reviewCount || 0) !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        <p className="mt-3 text-xs font-medium text-secondary md:opacity-0 md:transition md:group-hover:opacity-100">
+          Tap for details →
+        </p>
+      </div>
+    </article>
   );
+
+  if (onPreview) {
+    return (
+      <button
+        type="button"
+        onClick={onPreview}
+        className="group block h-full w-full cursor-pointer text-left"
+        aria-label={`View details for ${coaching.name}`}
+      >
+        {cardContent}
+      </button>
+    );
+  }
+
+  return cardContent;
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CoachingCard } from "@/components/marketing/CoachingCard";
+import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { Button } from "@/components/ui/Button";
 
 export function FeaturedCoachings({ coachings }) {
@@ -25,11 +25,7 @@ export function FeaturedCoachings({ coachings }) {
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {coachings.map((coaching) => (
-            <CoachingCard key={coaching.id} coaching={coaching} />
-          ))}
-        </div>
+        <CoachingCardGrid coachings={coachings} className="mt-10 sm:grid-cols-2 lg:grid-cols-3" />
       </div>
     </section>
   );

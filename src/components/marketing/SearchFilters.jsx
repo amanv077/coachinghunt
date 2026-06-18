@@ -8,6 +8,13 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 
+const QUICK_EXAMS = ["JEE", "NEET", "Boards", "Foundation"];
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest first" },
+  { value: "rating", label: "Top rated" },
+];
+
 function FilterForm({ filters, setFilters, onSubmit, onClear, className }) {
   return (
     <form onSubmit={onSubmit} className={cn("space-y-3", className)}>
@@ -51,6 +58,141 @@ function FilterForm({ filters, setFilters, onSubmit, onClear, className }) {
   );
 }
 
+function buildSearchUrl(searchParams, updates) {
+  const params = new URLSearchParams(searchParams.toString());
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+    else params.delete(key);
+  });
+  if ("q" in updates || "city" in updates || "targetExam" in updates || "subject" in updates) {
+    params.delete("page");
+  }
+  const qs = params.toString();
+  return qs ? `/search?${qs}` : "/search";
+}
+
+export function SearchToolbar() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [q, setQ] = useState(searchParams.get("q") || "");
+  const [city, setCity] = useState(searchParams.get("city") || "");
+  const activeExam = searchParams.get("targetExam") || "";
+  const activeSort = searchParams.get("sort") || "newest";
+
+  function handleSearch(e) {
+    e.preventDefault();
+    router.push(buildSearchUrl(searchParams, { q: q.trim(), city: city.trim() }));
+  }
+
+  function toggleExam(exam) {
+    router.push(
+      buildSearchUrl(searchParams, {
+        targetExam: activeExam === exam ? "" : exam,
+      })
+    );
+  }
+
+  function handleSortChange(e) {
+    router.push(buildSearchUrl(searchParams, { sort: e.target.value }));
+  }
+
+  return (
+    <div className="mt-6 space-y-4">
+      <div className="rounded-2xl border border-border bg-white p-3 shadow-sm sm:p-4">
+        <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="min-h-11 flex-1">
+            <Input
+              placeholder="Search coaching name, exam, or area..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search coachings"
+            />
+          </div>
+          <div className="min-h-11 sm:w-40">
+            <Input
+              placeholder="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              aria-label="City"
+            />
+          </div>
+          <Button type="submit" className="min-h-11 w-full sm:w-auto sm:shrink-0">
+            Search
+          </Button>
+        </form>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted">Popular exams:</span>
+          {QUICK_EXAMS.map((exam) => (
+            <button
+              key={exam}
+              type="button"
+              onClick={() => toggleExam(exam)}
+              className={cn(
+                "min-h-9 cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-medium transition",
+                activeExam === exam
+                  ? "border-secondary bg-secondary text-white"
+                  : "border-secondary/20 bg-white text-secondary hover:border-secondary hover:bg-secondary-light"
+              )}
+            >
+              {exam}
+            </button>
+          ))}
+        </div>
+        <Select
+          value={activeSort}
+          onChange={handleSortChange}
+          className="min-h-11 w-full sm:w-44"
+          aria-label="Sort results"
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </Select>
+      </div>
+    </div>
+  );
+}
+
+export function SearchPagination({ page, totalPages }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  if (totalPages <= 1) return null;
+
+  function goToPage(nextPage) {
+    router.push(
+      buildSearchUrl(searchParams, { page: nextPage <= 1 ? "" : String(nextPage) })
+    );
+  }
+
+  return (
+    <div className="mt-8 flex items-center justify-center gap-3">
+      <Button
+        variant="secondary"
+        className="min-h-11"
+        disabled={page <= 1}
+        onClick={() => goToPage(page - 1)}
+      >
+        Previous
+      </Button>
+      <span className="text-sm text-muted">
+        Page {page} of {totalPages}
+      </span>
+      <Button
+        variant="secondary"
+        className="min-h-11"
+        disabled={page >= totalPages}
+        onClick={() => goToPage(page + 1)}
+      >
+        Next
+      </Button>
+    </div>
+  );
+}
+
 export function SearchFilters({ mobileOnly = false }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,9 +206,7 @@ export function SearchFilters({ mobileOnly = false }) {
 
   function applyFilters(e) {
     e.preventDefault();
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([k, v]) => v && params.set(k, v));
-    router.push(`/search?${params.toString()}`);
+    router.push(buildSearchUrl(searchParams, filters));
     setDrawerOpen(false);
   }
 

@@ -9,8 +9,8 @@ import { ReviewForm } from "@/components/shared/ReviewForm";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 
-const tabs = [
-  { id: "about", label: "About" },
+const sections = [
+  { id: "overview", label: "Overview" },
   { id: "courses", label: "Courses" },
   { id: "demos", label: "Demos" },
   { id: "reviews", label: "Reviews" },
@@ -24,59 +24,101 @@ function StarIcon({ className }) {
   );
 }
 
-function LockIcon({ className }) {
+function MapPinIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
 }
 
-function LoginGate({ title, description, compact = false }) {
+function getInitials(name) {
+  return name
+    ?.split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function formatDemoDate(date) {
+  return new Date(date).toLocaleDateString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDemoDay(date) {
+  return new Date(date).toLocaleDateString(undefined, { day: "numeric" });
+}
+
+function formatDemoMonth(date) {
+  return new Date(date).toLocaleDateString(undefined, { month: "short" });
+}
+
+function SectionHeading({ id, title, subtitle }) {
+  return (
+    <div id={id} className="scroll-mt-28">
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+    </div>
+  );
+}
+
+function StatCard({ label, value, highlight = false }) {
+  return (
+    <div className="rounded-xl border border-border bg-white px-4 py-3 text-center shadow-sm">
+      <p className={cn("text-xl font-bold", highlight ? "text-success" : "text-foreground")}>
+        {value}
+      </p>
+      <p className="mt-0.5 text-xs text-muted">{label}</p>
+    </div>
+  );
+}
+
+function SignInPrompt({ title, description, compact = false }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-secondary/20 bg-secondary-light",
-        compact ? "px-4 py-3" : "p-5"
+        "rounded-xl border border-secondary/15 bg-secondary-light/60",
+        compact ? "px-4 py-3" : "p-4"
       )}
     >
-      <div className="flex items-start gap-3">
-        <LockIcon className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
-        <div>
-          <p className="font-semibold text-foreground">{title}</p>
-          <p className="mt-1 text-sm text-muted">{description}</p>
-          <Link href="/login" className="mt-3 inline-block cursor-pointer">
-            <Button size="sm">Login to unlock</Button>
-          </Link>
-        </div>
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-muted">{description}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href="/login">
+          <Button size="sm" className="min-h-9">Sign in</Button>
+        </Link>
+        <Link href="/signup/student">
+          <Button size="sm" variant="secondary" className="min-h-9">Create free account</Button>
+        </Link>
       </div>
     </div>
   );
 }
 
 export function CoachingProfileView({ coaching, session }) {
-  const [activeTab, setActiveTab] = useState("about");
+  const [activeSection, setActiveSection] = useState("overview");
   const isLoggedIn = !!session?.user;
-
-  const initials = coaching.name
-    ?.split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const isStudent = session?.user?.role === "STUDENT";
 
   const openDemos = coaching.demoSlots?.filter((s) => s.status === "OPEN") ?? [];
   const courseCount = coaching.courses?.length ?? 0;
   const reviewCount = coaching.reviewCount ?? coaching.reviews?.length ?? 0;
 
-  function scrollToDemos() {
-    setActiveTab("demos");
-    document.getElementById("coaching-demos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function scrollToSection(sectionId) {
+    setActiveSection(sectionId);
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
-    <div className="pb-24 md:pb-8">
-      <div className="relative h-48 sm:h-56">
+    <div className="pb-24 md:pb-12">
+      {/* Cover */}
+      <div className="relative h-40 sm:h-52">
         {coaching.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -87,148 +129,225 @@ export function CoachingProfileView({ coaching, session }) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary-hover to-primary-dark" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+        <div className="absolute left-0 right-0 top-0">
+          <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+            <Link
+              href="/search"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-sm font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-white"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to search
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative -mt-16 sm:-mt-20">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex items-end gap-4">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary text-2xl font-bold text-white shadow-lg ring-4 ring-white sm:h-24 sm:w-24">
-                {coaching.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-2xl object-cover" />
+        {/* Hero card */}
+        <div className="relative -mt-14 sm:-mt-16">
+          <Card className="overflow-hidden p-0 shadow-md">
+            <div className="p-5 sm:p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex gap-4">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-secondary text-xl font-bold text-white shadow-md ring-4 ring-white sm:h-20 sm:w-20 sm:text-2xl">
+                    {coaching.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
+                    ) : (
+                      getInitials(coaching.name)
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-xl font-bold text-foreground sm:text-2xl lg:text-3xl">
+                        {coaching.name}
+                      </h1>
+                      {coaching.verificationStatus === "VERIFIED" && (
+                        <Badge variant="success">Verified</Badge>
+                      )}
+                    </div>
+                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
+                      <MapPinIcon className="h-4 w-4 shrink-0 text-secondary" />
+                      {[coaching.locality, coaching.city].filter(Boolean).join(", ")}
+                    </p>
+                    {coaching.tagline && (
+                      <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
+                        {coaching.tagline}
+                      </p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {coaching.category && <Badge variant="default">{coaching.category}</Badge>}
+                      {coaching.mode && <Badge variant="default">{coaching.mode}</Badge>}
+                      {coaching.targetExams?.map((exam) => (
+                        <Badge key={exam} variant="primary">{exam}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-3 rounded-xl bg-secondary-light px-4 py-3">
+                  <StarIcon className="h-6 w-6 text-warning" />
+                  <div>
+                    <p className="text-2xl font-bold leading-none text-foreground">
+                      {coaching.avgRating?.toFixed(1) || "0.0"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">{reviewCount} reviews</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick stats */}
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <StatCard label="Courses" value={courseCount} />
+                <StatCard
+                  label="Open demos"
+                  value={openDemos.length}
+                  highlight={openDemos.length > 0}
+                />
+                <StatCard label="Reviews" value={reviewCount} />
+                {coaching.foundedYear ? (
+                  <StatCard label="Established" value={coaching.foundedYear} />
                 ) : (
-                  initials
+                  <StatCard label="Subjects" value={coaching.subjects?.length || "—"} />
                 )}
               </div>
-              <div className="pb-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{coaching.name}</h1>
-                  {coaching.verificationStatus === "VERIFIED" && (
-                    <Badge variant="success">Verified</Badge>
-                  )}
-                </div>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted sm:text-base">
-                  <svg className="h-4 w-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {coaching.locality}, {coaching.city}
-                </p>
+
+              {/* Desktop primary CTA */}
+              <div className="mt-5 hidden gap-3 md:flex">
+                {openDemos.length > 0 ? (
+                  <Button size="lg" className="min-h-11" onClick={() => scrollToSection("demos")}>
+                    Book free demo
+                  </Button>
+                ) : (
+                  <Button size="lg" variant="secondary" className="min-h-11" onClick={() => scrollToSection("courses")}>
+                    View courses
+                  </Button>
+                )}
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="min-h-11"
+                  onClick={() => scrollToSection("overview")}
+                >
+                  Read more
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white px-4 py-3 shadow-sm">
-              <StarIcon className="h-5 w-5 text-warning" />
-              <span className="text-lg font-bold text-foreground">
-                {coaching.avgRating?.toFixed(1) || "0.0"}
-              </span>
-              <span className="text-sm text-muted">({reviewCount} reviews)</span>
-            </div>
-          </div>
-
-          {coaching.tagline && (
-            <p className="mt-4 text-lg text-muted">{coaching.tagline}</p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {coaching.category && <Badge variant="default">{coaching.category}</Badge>}
-            {coaching.mode && <Badge variant="default">{coaching.mode}</Badge>}
-            {coaching.targetExams?.map((e) => (
-              <Badge key={e} variant="primary">
-                {e}
-              </Badge>
-            ))}
-            {coaching.subjects?.map((s) => (
-              <Badge key={s} variant="default">
-                {s}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-4 rounded-xl border border-border bg-white px-5 py-4 shadow-sm">
-            <span className="text-sm text-muted">
-              <strong className="text-foreground">{courseCount}</strong> course{courseCount !== 1 ? "s" : ""}
-            </span>
-            <span className="text-border">·</span>
-            <span className="text-sm text-muted">
-              <strong className="text-foreground">{reviewCount}</strong> review{reviewCount !== 1 ? "s" : ""}
-            </span>
-            <span className="text-border">·</span>
-            <span className="text-sm text-muted">
-              <strong className="text-foreground">{openDemos.length}</strong> demo{openDemos.length !== 1 ? "s" : ""} available
-            </span>
-            {coaching.foundedYear && (
-              <>
-                <span className="text-border">·</span>
-                <span className="text-sm text-muted">
-                  Est. <strong className="text-foreground">{coaching.foundedYear}</strong>
-                </span>
-              </>
-            )}
-          </div>
+          </Card>
         </div>
 
-        <div className="mt-8 border-b border-border">
-          <div className="flex gap-1 overflow-x-auto">
-            {tabs.map((tab) => (
+        {/* Section nav */}
+        <div className="sticky top-0 z-30 -mx-4 mt-6 border-b border-border bg-white/95 px-4 backdrop-blur sm:-mx-6 sm:px-6">
+          <div className="flex gap-1 overflow-x-auto py-1">
+            {sections.map((section) => (
               <button
-                key={tab.id}
+                key={section.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "min-h-11 shrink-0 cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition",
-                  activeTab === tab.id
-                    ? "border-secondary text-secondary"
-                    : "border-transparent text-muted hover:text-foreground"
+                  "min-h-11 shrink-0 cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition",
+                  activeSection === section.id
+                    ? "bg-secondary-light text-secondary"
+                    : "text-muted hover:bg-secondary-light/50 hover:text-foreground"
                 )}
               >
-                {tab.label}
+                {section.label}
+                {section.id === "demos" && openDemos.length > 0 && (
+                  <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-success px-1 text-[10px] font-bold text-white">
+                    {openDemos.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="mt-8">
-          {activeTab === "about" && (
-            <div className="max-w-3xl space-y-6">
+        {/* Main content + sidebar */}
+        <div className="mt-8 grid gap-8 lg:grid-cols-3 lg:gap-10">
+          <div className="space-y-10 lg:col-span-2">
+            {/* Overview */}
+            <section className="space-y-5">
+              <SectionHeading
+                id="overview"
+                title="About this coaching"
+                subtitle="What they teach and what you get"
+              />
+
               {coaching.description ? (
-                <p className="leading-relaxed text-muted">{coaching.description}</p>
+                <p className="text-sm leading-relaxed text-muted sm:text-base">
+                  {coaching.description}
+                </p>
               ) : (
-                <p className="text-muted">No description available yet.</p>
+                <p className="text-sm text-muted">No description available yet.</p>
               )}
 
-              {coaching.facilities?.length > 0 && (
+              {coaching.subjects?.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-foreground">Facilities</h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {coaching.facilities.map((f) => (
-                      <Badge key={f} variant="default">{f}</Badge>
+                  <h3 className="text-sm font-semibold text-foreground">Subjects taught</h3>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {coaching.subjects.map((subject) => (
+                      <Badge key={subject} variant="default">{subject}</Badge>
                     ))}
                   </div>
                 </div>
               )}
 
+              {coaching.facilities?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Facilities</h3>
+                  <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {coaching.facilities.map((facility) => (
+                      <li
+                        key={facility}
+                        className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground"
+                      >
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/15 text-xs text-success">
+                          ✓
+                        </span>
+                        {facility}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {!isLoggedIn && (
-                <LoginGate
-                  title="Contact & location details"
-                  description="Login to view phone number, email, full address, and website."
+                <SignInPrompt
+                  title="Want contact details?"
+                  description="Sign in to see phone, email, full address, and website."
                 />
               )}
 
               {isLoggedIn && (coaching.phone || coaching.email || coaching.addressLine1) && (
                 <Card>
                   <h3 className="font-semibold text-foreground">Contact & location</h3>
-                  <dl className="mt-3 space-y-2 text-sm">
+                  <dl className="mt-3 space-y-3 text-sm">
                     {coaching.phone && (
-                      <div><dt className="text-muted">Phone</dt><dd className="font-medium">{coaching.phone}</dd></div>
+                      <div className="flex gap-3">
+                        <dt className="w-16 shrink-0 text-muted">Phone</dt>
+                        <dd className="font-medium">
+                          <a href={`tel:${coaching.phone}`} className="text-secondary hover:underline">
+                            {coaching.phone}
+                          </a>
+                        </dd>
+                      </div>
                     )}
                     {coaching.email && (
-                      <div><dt className="text-muted">Email</dt><dd className="font-medium">{coaching.email}</dd></div>
+                      <div className="flex gap-3">
+                        <dt className="w-16 shrink-0 text-muted">Email</dt>
+                        <dd className="font-medium">
+                          <a href={`mailto:${coaching.email}`} className="text-secondary hover:underline">
+                            {coaching.email}
+                          </a>
+                        </dd>
+                      </div>
                     )}
                     {coaching.addressLine1 && (
-                      <div>
-                        <dt className="text-muted">Address</dt>
+                      <div className="flex gap-3">
+                        <dt className="w-16 shrink-0 text-muted">Address</dt>
                         <dd className="font-medium">
                           {coaching.addressLine1}
                           {coaching.addressLine2 && `, ${coaching.addressLine2}`}
@@ -237,11 +356,16 @@ export function CoachingProfileView({ coaching, session }) {
                       </div>
                     )}
                     {coaching.website && (
-                      <div>
-                        <dt className="text-muted">Website</dt>
+                      <div className="flex gap-3">
+                        <dt className="w-16 shrink-0 text-muted">Website</dt>
                         <dd>
-                          <a href={coaching.website} target="_blank" rel="noopener noreferrer" className="font-medium text-secondary hover:underline">
-                            {coaching.website}
+                          <a
+                            href={coaching.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-secondary hover:underline"
+                          >
+                            Visit website
                           </a>
                         </dd>
                       </div>
@@ -249,124 +373,178 @@ export function CoachingProfileView({ coaching, session }) {
                   </dl>
                 </Card>
               )}
-            </div>
-          )}
+            </section>
 
-          {activeTab === "courses" && (
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Courses */}
+            <section className="space-y-4">
+              <SectionHeading
+                id="courses"
+                title="Courses & batches"
+                subtitle={
+                  courseCount > 0
+                    ? `${courseCount} active course${courseCount !== 1 ? "s" : ""} offered`
+                    : "No courses listed yet"
+                }
+              />
+
               {coaching.courses?.length > 0 ? (
-                coaching.courses.map((course) => (
-                  <Card key={course.id} className="h-full">
-                    {isLoggedIn ? (
-                      <Link href={`/courses/${course.slug}`} className="block cursor-pointer">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {coaching.courses.map((course) => (
+                    <Card key={course.id} className="flex h-full flex-col">
+                      <div className="flex-1">
                         <h3 className="font-semibold text-foreground">{course.title}</h3>
                         <p className="mt-1 text-sm text-muted">
-                          {course.targetExam} · {course.durationText}
-                        </p>
-                        {course.fees && (
-                          <p className="mt-3 text-lg font-bold text-secondary">
-                            ₹{course.fees.toLocaleString()}
-                          </p>
-                        )}
-                      </Link>
-                    ) : (
-                      <>
-                        <h3 className="font-semibold text-foreground">{course.title}</h3>
-                        <p className="mt-1 text-sm text-muted">
-                          {course.targetExam} · {course.durationText}
+                          {course.targetExam}
+                          {course.durationText && ` · ${course.durationText}`}
                         </p>
                         {course.description && (
-                          <p className="mt-2 text-sm text-muted">{course.description}</p>
+                          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
+                            {course.description}
+                          </p>
                         )}
-                        <LoginGate
-                          compact
-                          title="Course fees & schedule"
-                          description="Login to view fees, batch size, faculty details, and full course page."
-                        />
-                      </>
-                    )}
-                  </Card>
-                ))
-              ) : (
-                <p className="text-muted">No courses listed yet.</p>
-              )}
-            </div>
-          )}
-
-          {activeTab === "demos" && (
-            <div id="coaching-demos">
-              {!isLoggedIn ? (
-                <div className="space-y-4">
-                  {openDemos.length > 0 ? (
-                    <>
-                      <p className="text-sm text-muted">
-                        {openDemos.length} demo session{openDemos.length !== 1 ? "s" : ""} available — preview below
-                      </p>
-                      <div className="space-y-3">
-                        {openDemos.map((slot) => (
-                          <Card key={slot.id}>
-                            <p className="font-medium text-foreground">{slot.topic}</p>
-                            <p className="mt-1 text-sm text-muted">
-                              {new Date(slot.demoDate).toLocaleDateString(undefined, {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </p>
-                            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
-                              <LockIcon className="h-3.5 w-3.5" />
-                              Time, teacher & venue visible after login
-                            </p>
-                          </Card>
-                        ))}
                       </div>
-                    </>
-                  ) : (
-                    <p className="text-muted">No upcoming demo slots. Check back soon.</p>
-                  )}
-                  <LoginGate
-                    title="Book a free demo"
-                    description="Sign in to see exact times, teacher details, and reserve your seat instantly."
-                  />
-                </div>
-              ) : openDemos.length > 0 ? (
-                <div className="space-y-3">
-                  {openDemos.map((slot) => (
-                    <Card key={slot.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{slot.topic}</p>
-                        <p className="mt-1 text-sm text-muted">
-                          {new Date(slot.demoDate).toLocaleDateString()} · {slot.startTime}–{slot.endTime}
-                          {slot.teacherName && ` · ${slot.teacherName}`}
-                        </p>
-                      </div>
-                      <BookDemoButton demoSlotId={slot.id} disabled={slot.status !== "OPEN"} />
+                      {isLoggedIn ? (
+                        <div className="mt-4 border-t border-border pt-4">
+                          {course.fees && (
+                            <p className="text-lg font-bold text-secondary">
+                              ₹{course.fees.toLocaleString()}
+                            </p>
+                          )}
+                          <Link href={`/courses/${course.slug}`} className="mt-2 inline-block">
+                            <Button size="sm" variant="secondary" className="min-h-9">
+                              View course details
+                            </Button>
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="mt-4 border-t border-border pt-3">
+                          <p className="text-xs text-muted">Fees & schedule available after sign in</p>
+                          <Link href="/login" className="mt-2 inline-block">
+                            <Button size="sm" variant="ghost" className="min-h-9 px-0 text-secondary">
+                              Sign in to see fees →
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
                     </Card>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted">No upcoming demo slots. Check back soon.</p>
+                <Card className="text-center">
+                  <p className="text-sm text-muted">This coaching hasn&apos;t listed courses yet.</p>
+                  <Button
+                    variant="secondary"
+                    className="mt-3 min-h-11"
+                    onClick={() => scrollToSection("demos")}
+                  >
+                    Check demo sessions instead
+                  </Button>
+                </Card>
               )}
-            </div>
-          )}
+            </section>
 
-          {activeTab === "reviews" && (
-            <div>
-              {session?.user?.role === "STUDENT" && (
-                <div className="mb-6">
-                  <ReviewForm coachingId={coaching.id} />
+            {/* Demos */}
+            <section className="space-y-4">
+              <SectionHeading
+                id="demos"
+                title="Free demo sessions"
+                subtitle={
+                  openDemos.length > 0
+                    ? "Attend a demo before you decide — seats are limited"
+                    : "No upcoming demos right now"
+                }
+              />
+
+              {openDemos.length > 0 ? (
+                <div className="space-y-3">
+                  {openDemos.map((slot) => (
+                    <Card
+                      key={slot.id}
+                      className="flex flex-col gap-4 p-0 overflow-hidden sm:flex-row sm:items-stretch"
+                    >
+                      <div className="flex shrink-0 flex-col items-center justify-center bg-secondary-light px-5 py-4 sm:w-24">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-secondary">
+                          {formatDemoMonth(slot.demoDate)}
+                        </span>
+                        <span className="text-2xl font-bold text-foreground">
+                          {formatDemoDay(slot.demoDate)}
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col justify-center px-4 py-4 sm:px-0 sm:pr-4">
+                        <p className="font-semibold text-foreground">{slot.topic}</p>
+                        <p className="mt-1 text-sm text-muted">{formatDemoDate(slot.demoDate)}</p>
+                        {isLoggedIn ? (
+                          slot.startTime && (
+                            <p className="mt-1 text-sm text-muted">
+                              {slot.startTime}–{slot.endTime}
+                              {slot.teacherName && ` · ${slot.teacherName}`}
+                            </p>
+                          )
+                        ) : (
+                          <p className="mt-1 text-xs text-muted">
+                            Exact time & teacher shown after sign in
+                          </p>
+                        )}
+                      </div>
+                      {isLoggedIn && (
+                        <div className="flex items-center px-4 pb-4 sm:px-4 sm:pb-0">
+                          <BookDemoButton demoSlotId={slot.id} disabled={slot.status !== "OPEN"} />
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                  {!isLoggedIn && (
+                    <SignInPrompt
+                      title="Ready to book?"
+                      description="Create a free student account to reserve your demo seat and get instant confirmation."
+                    />
+                  )}
                 </div>
+              ) : (
+                <Card className="text-center">
+                  <p className="text-sm text-muted">
+                    No demo slots scheduled. Check back soon or explore their courses.
+                  </p>
+                  {courseCount > 0 && (
+                    <Button
+                      variant="secondary"
+                      className="mt-3 min-h-11"
+                      onClick={() => scrollToSection("courses")}
+                    >
+                      View courses
+                    </Button>
+                  )}
+                </Card>
               )}
+            </section>
+
+            {/* Reviews */}
+            <section className="space-y-4">
+              <SectionHeading
+                id="reviews"
+                title="Student reviews"
+                subtitle={
+                  reviewCount > 0
+                    ? `Rated ${coaching.avgRating?.toFixed(1) || "0.0"} out of 5`
+                    : "No reviews yet"
+                }
+              />
+
+              {isStudent && (
+                <ReviewForm coachingId={coaching.id} />
+              )}
+
               {coaching.reviews?.length > 0 ? (
                 <div className="space-y-3">
                   {coaching.reviews.map((review) => (
                     <Card key={review.id}>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{review.student?.user?.name}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground">
+                          {review.student?.user?.name || "Student"}
+                        </span>
                         <Badge variant="primary">
                           <StarIcon className="mr-0.5 inline h-3 w-3 text-warning" />
-                          {review.rating}
+                          {review.rating}/5
                         </Badge>
                       </div>
                       {review.comment && (
@@ -376,17 +554,112 @@ export function CoachingProfileView({ coaching, session }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted">No reviews yet. Be the first to share your experience.</p>
+                <Card className="text-center">
+                  <p className="text-sm text-muted">
+                    No reviews yet. Book a demo and share your experience.
+                  </p>
+                </Card>
+              )}
+            </section>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-20 space-y-4">
+              <Card className="border-secondary/20 bg-secondary-light/30">
+                <h3 className="font-semibold text-foreground">
+                  {openDemos.length > 0 ? "Book a free demo" : "Interested?"}
+                </h3>
+                <p className="mt-2 text-sm text-muted">
+                  {openDemos.length > 0
+                    ? `${openDemos.length} demo session${openDemos.length !== 1 ? "s" : ""} available. Try a class before you enroll.`
+                    : "Browse courses or check back for upcoming demo sessions."}
+                </p>
+                {openDemos.length > 0 ? (
+                  <Button className="mt-4 min-h-11 w-full" onClick={() => scrollToSection("demos")}>
+                    View demo slots
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    className="mt-4 min-h-11 w-full"
+                    onClick={() => scrollToSection("courses")}
+                  >
+                    View courses
+                  </Button>
+                )}
+                {!isLoggedIn && (
+                  <p className="mt-3 text-center text-xs text-muted">
+                    Free to sign up · No payment needed for demos
+                  </p>
+                )}
+              </Card>
+
+              <Card>
+                <h3 className="text-sm font-semibold text-foreground">At a glance</h3>
+                <dl className="mt-3 space-y-2.5 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">Location</dt>
+                    <dd className="text-right font-medium text-foreground">
+                      {[coaching.locality, coaching.city].filter(Boolean).join(", ") || "—"}
+                    </dd>
+                  </div>
+                  {coaching.category && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-muted">Category</dt>
+                      <dd className="text-right font-medium text-foreground">{coaching.category}</dd>
+                    </div>
+                  )}
+                  {coaching.mode && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-muted">Mode</dt>
+                      <dd className="text-right font-medium text-foreground">{coaching.mode}</dd>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">Exams</dt>
+                    <dd className="text-right font-medium text-foreground">
+                      {coaching.targetExams?.join(", ") || "—"}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">Rating</dt>
+                    <dd className="flex items-center gap-1 font-medium text-foreground">
+                      <StarIcon className="h-3.5 w-3.5 text-warning" />
+                      {coaching.avgRating?.toFixed(1) || "0.0"} ({reviewCount})
+                    </dd>
+                  </div>
+                </dl>
+              </Card>
+
+              {!isLoggedIn && (
+                <SignInPrompt
+                  compact
+                  title="Join CoachingHunt"
+                  description="Save coachings, book demos, and get offers — free for students."
+                />
               )}
             </div>
-          )}
+          </aside>
         </div>
       </div>
 
+      {/* Mobile sticky CTA */}
       <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-white p-4 md:hidden">
-        <Button className="min-h-11 w-full cursor-pointer" size="lg" onClick={scrollToDemos}>
-          {isLoggedIn ? "Book a Demo" : "View Demo Slots"}
-        </Button>
+        {openDemos.length > 0 ? (
+          <Button className="min-h-11 w-full" size="lg" onClick={() => scrollToSection("demos")}>
+            {isLoggedIn ? "Book free demo" : "View demo slots"}
+          </Button>
+        ) : (
+          <Button
+            className="min-h-11 w-full"
+            size="lg"
+            variant="secondary"
+            onClick={() => scrollToSection("courses")}
+          >
+            View courses
+          </Button>
+        )}
       </div>
     </div>
   );

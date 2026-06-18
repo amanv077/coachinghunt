@@ -32,11 +32,15 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
         name: true,
         slug: true,
         tagline: true,
+        description: true,
         city: true,
         locality: true,
         category: true,
+        mode: true,
+        foundedYear: true,
         targetExams: true,
         subjects: true,
+        facilities: true,
         logoUrl: true,
         coverImageUrl: true,
         avgRating: true,
@@ -46,6 +50,9 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
           select: {
             demoSlots: {
               where: { status: "OPEN", demoDate: { gte: new Date() } },
+            },
+            courses: {
+              where: { status: "ACTIVE" },
             },
           },
         },
@@ -57,6 +64,7 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
   const items = rows.map(({ _count, ...coaching }) => ({
     ...coaching,
     openDemoCount: _count.demoSlots,
+    courseCount: _count.courses,
   }));
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
@@ -149,11 +157,15 @@ export async function getFeaturedCoachings(limit = 6) {
       name: true,
       slug: true,
       tagline: true,
+      description: true,
       city: true,
       locality: true,
       category: true,
+      mode: true,
+      foundedYear: true,
       targetExams: true,
       subjects: true,
+      facilities: true,
       logoUrl: true,
       coverImageUrl: true,
       avgRating: true,
@@ -164,6 +176,9 @@ export async function getFeaturedCoachings(limit = 6) {
           demoSlots: {
             where: { status: "OPEN", demoDate: { gte: new Date() } },
           },
+          courses: {
+            where: { status: "ACTIVE" },
+          },
         },
       },
     },
@@ -172,5 +187,6 @@ export async function getFeaturedCoachings(limit = 6) {
   return rows.map(({ _count, ...coaching }) => ({
     ...coaching,
     openDemoCount: _count.demoSlots,
+    courseCount: _count.courses,
   }));
 }
