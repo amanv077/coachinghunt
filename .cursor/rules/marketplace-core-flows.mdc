@@ -1,0 +1,70 @@
+---
+description: UI must support CoachingHunt's six core marketplace flows
+alwaysApply: true
+---
+
+# Core Marketplace Flows
+
+UI changes must strengthen these flows. Do not add UI that competes with or obscures them.
+
+## 1. Coaching finding (student discovery)
+
+**Routes**: homepage, `/search`, `/coaching/[slug]`, `/courses/[slug]`
+
+- Prominent search and filters (`SearchFilters`, exam/location tags).
+- Scannable listing cards (`CoachingCard`) with name, location, exams, rating.
+- Detail pages: clear hierarchy — about → courses/batches → available demos → book CTA.
+
+## 2. Coaching demo booking
+
+**Components**: `BookDemoButton`, student bookings pages
+
+- One obvious "Book demo" action per slot; show date, time, capacity, and confirmation code.
+- Gate login only at booking time, not during browsing.
+- Post-booking: success message, booking code, link to "My bookings".
+
+## 3. Student onboarding
+
+**Routes**: `/signup/student`, `/login`, student dashboard
+
+- Short signup: only fields needed to start discovering and booking.
+- After signup, guide toward search or a saved coaching — not an empty dashboard.
+
+## 4. Coaching onboarding
+
+**Routes**: `/signup/coaching`, `/coaching/profile`, coaching dashboard
+
+- Step-by-step profile completion (logo, cover, tagline, exams, location).
+- Show profile completeness; celebrate progress; explain why each field helps students find them.
+
+## 5. Batches (courses)
+
+**Routes**: `/coaching/courses`, public course detail
+
+- Coaches: simple create/edit forms, list with status (active/archived).
+- Students: batch name, exam, schedule summary, fee if shown, link to available demos.
+
+## 6. Demo creation (coaching supply)
+
+**Routes**: `/coaching/demo-slots`, coaching bookings
+
+- Coaches: easy slot creation (date, time, linked course, capacity).
+- Clear slot status (open/full/cancelled). Surface upcoming demos on coaching profile for students.
+
+## Mobile priorities per flow
+
+| Flow | Mobile must-have |
+|------|------------------|
+| Coaching finding | Search bar visible without scroll; cards full-width; filters in drawer/accordion |
+| Demo booking | Sticky "Book demo" CTA; slot details readable without pinch-zoom |
+| Student onboarding | Short single-column signup; large inputs; minimal typing |
+| Coaching onboarding | One section per screen or clear steps; camera-friendly upload for logo |
+| Batches | Card list, not wide tables; edit actions reachable with thumb |
+| Demo creation | Date/time pickers native-friendly; quick-add for recurring slots |
+
+## Cross-flow rules
+
+- **Public pages** sell discovery and trust; **dashboards** manage supply and bookings.
+- CTAs must match intent: "Find coachings" (student), "List your coaching" (coach), "Book demo" (conversion).
+- Empty states must suggest the next step for that flow (e.g. "No demos yet — create one" for coaches).
+- **Never ship a flow that only works on desktop** — mobile is the default experience.

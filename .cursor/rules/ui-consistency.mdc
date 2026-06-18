@@ -1,0 +1,60 @@
+---
+description: Keep UI consistent using the shared design system
+globs: src/components/**/*,src/app/**/*
+alwaysApply: false
+---
+
+# UI Consistency
+
+Keep the app visually and behaviorally consistent. Reuse before reinventing.
+
+## Design system (required)
+
+Use shared primitives from `src/components/ui/`:
+
+- `Button`, `Input`, `Textarea`, `Select`, `Card`, `Badge`
+- `Loader`, `Skeleton`, `EmptyState`, `Toast`
+
+Do **not** create raw `<button>` / `<input>` with custom styles unless extending the design system itself.
+
+## Theme tokens
+
+Colors, radius, and shadows come from `src/styles/theme.css`. Use Tailwind semantic tokens:
+
+- `bg-secondary`, `text-secondary`, `border-border`, `text-muted`, `text-foreground`
+- `rounded-lg`, `rounded-xl`, `rounded-2xl` for cards and surfaces
+
+Never hardcode hex colors in components. Update `theme.css` for brand changes.
+
+## Mobile-first layout (required)
+
+Write default styles for mobile, then add breakpoints:
+
+- Grids: `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-3`
+- Flex: `flex-col` → `md:flex-row` when side-by-side makes sense on larger screens
+- Hide/show: `hidden md:block` only if mobile users have an equivalent path (menu, drawer, stacked layout)
+- CTAs: `w-full md:w-auto` for primary buttons on forms and booking flows
+
+## Layout patterns
+
+- **Public/marketing**: single-column on mobile; `CoachingCard` grids stack then expand; one hero CTA above the fold on phone.
+- **Dashboards**: `DashboardSidebar` stacks above content on mobile (`w-full md:w-64`); page actions in a vertical stack on small screens.
+- **Forms**: single column on mobile; label above field; full-width submit; `React Hook Form` + inline errors.
+
+## Spacing and typography
+
+- Page padding: `px-4 sm:px-6 lg:px-8` (never less than `px-4` on mobile).
+- Headings: page `text-2xl font-bold`, section `text-lg font-semibold`, body `text-sm text-muted`.
+- Cards: `rounded-xl border border-border bg-white shadow-sm p-5`.
+
+## Motion
+
+Use subtle transitions (`transition duration-300`, hover lift on cards). Avoid distracting animations on forms or dashboards.
+
+## Checklist for new UI
+
+- [ ] **Mobile-first**: works at 320–390px before desktop polish
+- [ ] Uses existing `ui/` components
+- [ ] Matches spacing/typography of a similar page in the same route group
+- [ ] Has loading, empty, and error states
+- [ ] Tappable targets ≥ 44px; no hover-only interactions

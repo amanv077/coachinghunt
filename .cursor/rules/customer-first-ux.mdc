@@ -1,0 +1,34 @@
+---
+description: Prioritize customer UX in every UI change for CoachingHunt
+alwaysApply: true
+---
+
+# Customer-First UX
+
+CoachingHunt is a **customer-facing marketplace** for coaching discovery and demo booking. Most users are on **mobile** — every UI change must work on a phone first, then scale up to desktop.
+
+## Before changing UI, ask
+
+1. Does this work on a 390px-wide phone without horizontal scroll or hidden actions?
+2. Does this reduce steps to discover or book a coaching?
+3. Is the next action obvious (one primary CTA per section, thumb-reachable)?
+4. Would a first-time student understand this without coaching jargon?
+
+## UX principles
+
+- **Mobile first** — design for one-column, thumb-friendly layouts; sticky CTAs for booking/signup on small screens.
+- **Clarity over cleverness** — plain labels ("Book free demo", "Search coachings"), not internal terms ("slot", "lead", "supply").
+- **Trust signals** — show location, exams, ratings, verification, and booking confirmation clearly.
+- **Progressive disclosure** — anonymous users see enough to decide; logged-in users see full details and actions.
+- **Feedback always** — use `Loader`, `Skeleton`, `Toast`, and `EmptyState` for loading, empty, success, and error states. Never leave a dead screen.
+- **Minimal friction** — shorten forms, group related fields, show validation inline, preserve context on errors.
+
+## Avoid
+
+- Admin/dashboard patterns on public pages (dense tables, icon-only actions, unexplained badges).
+- New one-off styles when an existing component or pattern already fits.
+- Blocking discovery behind login unless required for the action (e.g. booking).
+
+## When unsure
+
+Prefer the path that helps a student go from **search → coaching profile → demo booking** in fewer taps with clearer feedback.

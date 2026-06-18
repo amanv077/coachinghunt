@@ -1,0 +1,55 @@
+---
+description: Mobile-first responsive design — primary device is the phone
+alwaysApply: true
+---
+
+# Mobile-First Responsive
+
+Most CoachingHunt users are on **mobile**. Design and implement for small screens first, then enhance for tablet and desktop.
+
+## Build order
+
+1. Layout and content must work at **320px–390px** width before adding `sm:` / `md:` / `lg:` breakpoints.
+2. Default Tailwind classes = mobile. Use `md:` and up only to add columns, show sidebars, or widen containers.
+3. Test mentally (or in browser) at mobile width for every UI change.
+
+## Layout patterns
+
+```jsx
+// ✅ Mobile stack → desktop grid
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+// ✅ Full-width mobile, constrained desktop
+<div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+
+// ✅ Sticky bottom CTA on mobile for key actions (book demo, submit)
+<div className="fixed bottom-0 inset-x-0 border-t bg-white p-4 md:static md:border-0 md:p-0">
+```
+
+- **Dashboards**: sidebar stacks above content on mobile (`w-full md:w-64`), not hidden without a mobile nav alternative.
+- **Tables**: convert to stacked cards on mobile, or enable horizontal scroll with a visible hint — never clip content silently.
+- **Filters**: collapsible drawer or accordion on mobile; inline on `md+`.
+
+## Touch and readability
+
+- Tap targets **≥ 44×44px** — use `py-3`, `min-h-11`, adequate gap between links/buttons.
+- Primary actions: full-width on mobile (`w-full md:w-auto`).
+- Body text ≥ `text-sm`; avoid tiny labels. Line length readable without horizontal scroll.
+- Forms: one column, large inputs (`Input` defaults), numeric keyboards via `type="tel"` / `type="email"` where appropriate.
+
+## Navigation
+
+- Every link reachable on mobile — no desktop-only nav without a hamburger/menu or bottom bar.
+- Keep header compact; prioritize search and "Book demo" / "Find coachings" over secondary links.
+
+## Performance on mobile
+
+- Prefer server-rendered content; avoid heavy client bundles for listing pages.
+- Use `Skeleton` placeholders sized for mobile card layout.
+- Optimize images (appropriate sizes, lazy load below fold).
+
+## Avoid on mobile
+
+- Hover-only interactions (no `:hover`-only affordances).
+- Multi-column forms, wide data tables, tiny icon-only buttons without labels.
+- Fixed elements that cover >15% of viewport unless essential (sticky book CTA is OK).
