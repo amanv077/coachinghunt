@@ -1,4 +1,8 @@
-import { getFeaturedCoachings } from "@/modules/coachings/coachings.service";
+import {
+  getFeaturedCoachings,
+  getFeaturedReviews,
+  getPlatformStats,
+} from "@/modules/coachings/coachings.service";
 import { HomepageHero } from "@/components/marketing/HomepageHero";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { BenefitsSection } from "@/components/marketing/BenefitsSection";
@@ -12,14 +16,18 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const featured = await getFeaturedCoachings(6);
+  const [featured, stats, reviews] = await Promise.all([
+    getFeaturedCoachings(6),
+    getPlatformStats(),
+    getFeaturedReviews(3),
+  ]);
 
   return (
     <>
-      <HomepageHero />
+      <HomepageHero stats={stats} />
       <HowItWorks />
       <FeaturedCoachings coachings={featured} />
-      <TestimonialsSection />
+      <TestimonialsSection reviews={reviews} />
       <BenefitsSection />
       <CoachingCta />
     </>

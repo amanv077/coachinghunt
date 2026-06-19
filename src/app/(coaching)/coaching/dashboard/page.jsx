@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ProfileCompletenessBar } from "@/components/coaching/ProfileCompletenessBar";
 
 export default async function CoachingDashboardPage() {
   const session = await getSession();
@@ -19,6 +20,10 @@ export default async function CoachingDashboardPage() {
           {data.profile.listingStatus}
         </Badge>
       </div>
+
+      {data.completeness && (
+        <ProfileCompletenessBar completeness={data.completeness} />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><p className="text-sm text-muted">Active Courses</p><p className="text-2xl font-bold">{data.courseCount}</p></Card>

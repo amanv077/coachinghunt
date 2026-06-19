@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { listPublicCoachings } from "@/modules/coachings/coachings.service";
+import { getSavedCoachingIds } from "@/modules/saved-coachings/saved-coachings.service";
+import { getSession } from "@/lib/auth/session";
 import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
@@ -21,14 +23,20 @@ export const metadata = {
 export default async function SearchPage({ searchParams }) {
   const params = await searchParams;
   const page = Number(params.page || 1);
-  const result = await listPublicCoachings({
-    q: params.q,
-    city: params.city,
-    targetExam: params.targetExam,
-    subject: params.subject,
-    page,
-    sort: params.sort || "newest",
-  });
+  const session = await getSession();
+  const [result, savedIds] = await Promise.all([
+    listPublicCoachings({
+      q: params.q,
+      city: params.city,
+      targetExam: params.targetExam,
+      subject: params.subject,
+      page,
+      sort: params.sort || "newest",
+    }),
+    session?.user?.role === "STUDENT"
+      ? getSavedCoachingIds(session.user.id)
+      : Promise.resolve([]),
+  ]);
 
   const hasFilters = !!(params.q || params.city || params.targetExam || params.subject);
 
@@ -96,7 +104,7 @@ export default async function SearchPage({ searchParams }) {
             </div>
           ) : (
             <>
-              <CoachingCardGrid coachings={result.items} />
+              <CoachingCardGrid coachings={result.items} savedIds={savedIds} showActions />
               <Suspense fallback={null}>
                 <SearchPagination page={result.page} totalPages={result.totalPages} />
               </Suspense>

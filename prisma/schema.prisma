@@ -113,6 +113,7 @@ model StudentProfile {
   bookings          Booking[]
   reviews           Review[]
   demoRequests      DemoRequest[]
+  savedCoachings    SavedCoaching[]
 }
 
 model CoachingProfile {
@@ -142,6 +143,10 @@ model CoachingProfile {
   pincode            String?
   latitude           Float?
   longitude          Float?
+  videoUrl           String?
+  facultyProfiles    Json?
+  achievementsText   String?
+  avgResponseHours   Float?
   verificationStatus VerificationStatus @default(PENDING)
   listingStatus      ListingStatus      @default(DRAFT)
   avgRating          Float              @default(0)
@@ -156,6 +161,7 @@ model CoachingProfile {
   reviews            Review[]
   offers             Offer[]
   demoRequests       DemoRequest[]
+  savedBy            SavedCoaching[]
 
   @@index([city])
   @@index([locality])
@@ -324,6 +330,18 @@ model DemoRequest {
   @@index([studentId])
   @@index([coachingId])
   @@index([status])
+}
+
+model SavedCoaching {
+  id         String          @id @default(cuid())
+  studentId  String
+  coachingId String
+  createdAt  DateTime        @default(now())
+  student    StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  coaching   CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, coachingId])
+  @@index([studentId])
 }
 
 model AuditLog {

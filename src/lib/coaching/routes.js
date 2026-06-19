@@ -2,6 +2,7 @@
 export const COACHING_DASHBOARD_ROUTES = [
   "/coaching/dashboard",
   "/coaching/profile",
+  "/coaching/branches",
   "/coaching/courses",
   "/coaching/demo-slots",
   "/coaching/bookings",

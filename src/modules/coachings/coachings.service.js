@@ -46,6 +46,7 @@ export async function listPublicCoachings({ q, city, locality, subject, targetEx
         avgRating: true,
         reviewCount: true,
         verificationStatus: true,
+        avgResponseHours: true,
         _count: {
           select: {
             demoSlots: {
@@ -80,6 +81,7 @@ export async function getCoachingBySlugOrId(identifier, isAuthenticated = false)
       courses: {
         where: { status: "ACTIVE" },
       },
+      branches: true,
       demoSlots: {
         where: { status: { in: ["OPEN", "FULL"] }, demoDate: { gte: new Date() } },
         orderBy: { demoDate: "asc" },
@@ -128,10 +130,65 @@ export async function getCoachingBySlugOrId(identifier, isAuthenticated = false)
 }
 
 export async function getCoachingByUserId(userId) {
-  return prisma.coachingProfile.findUnique({
+  const profile = await prisma.coachingProfile.findUnique({
     where: { userId },
-    include: { branches: true, courses: true },
+    include: {
+      branches: true,
+      courses: true,
+      _count: { select: { courses: true, demoSlots: true } },
+    },
   });
+
+  if (!profile) return null;
+
+  const { _count, ...rest } = profile;
+  return {
+    ...rest,
+    completeness: getProfileCompleteness(profile, {
+      courseCount: _count.courses,
+      demoSlotCount: _count.demoSlots,
+    }),
+  };
+}
+
+export function getProfileCompleteness(profile, { courseCount = 0, demoSlotCount = 0 } = {}) {
+  const checks = [
+    { label: "Institute name", done: !!profile.name },
+    { label: "Tagline", done: !!profile.tagline },
+    { label: "Description", done: !!profile.description?.trim() },
+    { label: "City", done: !!profile.city },
+    { label: "Target exams", done: profile.targetExams?.length > 0 },
+    { label: "Logo", done: !!profile.logoUrl },
+    { label: "Cover photo", done: !!profile.coverImageUrl },
+    { label: "Phone", done: !!profile.phone },
+    { label: "Add a course", done: courseCount > 0 },
+    { label: "Create a demo slot", done: demoSlotCount > 0 },
+  ];
+
+  const doneCount = checks.filter((c) => c.done).length;
+  const score = Math.round((doneCount / checks.length) * 100);
+  const missing = checks.filter((c) => !c.done).map((c) => c.label);
+
+  return { score, missing };
+}
+
+export async function computeAvgResponseHours(coachingId) {
+  const requests = await prisma.demoRequest.findMany({
+    where: {
+      coachingId,
+      status: { in: ["APPROVED", "RESCHEDULED", "DECLINED"] },
+    },
+    select: { createdAt: true, updatedAt: true },
+  });
+
+  if (requests.length < 3) return null;
+
+  const totalHours = requests.reduce((sum, req) => {
+    const hours = (req.updatedAt - req.createdAt) / (1000 * 60 * 60);
+    return sum + hours;
+  }, 0);
+
+  return Math.round((totalHours / requests.length) * 10) / 10;
 }
 
 export async function updateCoachingProfile(userId, data) {
@@ -143,6 +200,48 @@ export async function updateCoachingProfile(userId, data) {
     data: {
       ...data,
       ...(data.name && !data.slug && { slug: slugify(data.name) + "-" + profile.id.slice(-6) }),
+    },
+    include: {
+      _count: { select: { courses: true, demoSlots: true } },
+    },
+  }).then((updated) => {
+    const { _count, ...rest } = updated;
+    return {
+      ...rest,
+      completeness: getProfileCompleteness(updated, {
+        courseCount: _count.courses,
+        demoSlotCount: _count.demoSlots,
+      }),
+    };
+  });
+}
+
+export async function getPlatformStats() {
+  const [coachingCount, bookingCount, cities] = await Promise.all([
+    prisma.coachingProfile.count({ where: { listingStatus: "ACTIVE" } }),
+    prisma.booking.count({ where: { status: "CONFIRMED" } }),
+    prisma.coachingProfile.findMany({
+      where: { listingStatus: "ACTIVE", city: { not: null } },
+      select: { city: true },
+      distinct: ["city"],
+    }),
+  ]);
+
+  return {
+    coachings: coachingCount,
+    bookings: bookingCount,
+    cities: cities.length,
+  };
+}
+
+export async function getFeaturedReviews(limit = 3) {
+  return prisma.review.findMany({
+    where: { status: "APPROVED", comment: { not: null } },
+    orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+    take: limit,
+    include: {
+      student: { include: { user: { select: { name: true } } } },
+      coaching: { select: { name: true, city: true, targetExams: true } },
     },
   });
 }
@@ -171,6 +270,7 @@ export async function getFeaturedCoachings(limit = 6) {
       avgRating: true,
       reviewCount: true,
       verificationStatus: true,
+      avgResponseHours: true,
       _count: {
         select: {
           demoSlots: {

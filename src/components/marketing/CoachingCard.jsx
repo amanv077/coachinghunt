@@ -1,6 +1,8 @@
 "use client";
 
 import { Badge } from "@/components/ui/Badge";
+import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
+import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { cn } from "@/lib/utils/cn";
 
 function StarIcon({ className }) {
@@ -28,7 +30,7 @@ function BookIcon({ className }) {
   );
 }
 
-export function CoachingCard({ coaching, onPreview }) {
+export function CoachingCard({ coaching, onPreview, isSaved = false, showActions = false }) {
   const initials = coaching.name
     ?.split(" ")
     .map((w) => w[0])
@@ -62,6 +64,11 @@ export function CoachingCard({ coaching, onPreview }) {
           </div>
         </div>
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
+          {showActions && (
+            <div className="flex gap-2">
+              <SaveCoachingButton coachingId={coaching.id} initialSaved={isSaved} />
+            </div>
+          )}
           {coaching.verificationStatus === "VERIFIED" && (
             <Badge variant="success">Verified</Badge>
           )}
@@ -128,19 +135,30 @@ export function CoachingCard({ coaching, onPreview }) {
         </div>
 
         <div className="mt-auto flex items-center justify-between border-t border-border pt-4">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 text-xs font-medium",
-              demoCount > 0 ? "text-success" : "text-muted"
+          <div className="space-y-1">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-medium",
+                demoCount > 0 ? "text-success" : "text-muted"
+              )}
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", demoCount > 0 ? "bg-success" : "bg-border")} />
+              {demoCount > 0 ? "Demos available" : "No demos yet"}
+            </span>
+            {coaching.avgResponseHours != null && (
+              <p className="text-xs text-secondary">Responds in ~{coaching.avgResponseHours}h</p>
             )}
-          >
-            <span className={cn("h-1.5 w-1.5 rounded-full", demoCount > 0 ? "bg-success" : "bg-border")} />
-            {demoCount > 0 ? "Demos available" : "No demos yet"}
-          </span>
+          </div>
           <span className="text-xs font-medium text-secondary">
             {coaching.reviewCount || 0} review{(coaching.reviewCount || 0) !== 1 ? "s" : ""}
           </span>
         </div>
+
+        {showActions && (
+          <div className="mt-3">
+            <CompareCoachingButton coaching={coaching} className="w-full" />
+          </div>
+        )}
 
         <p className="mt-3 text-xs font-medium text-secondary md:opacity-0 md:transition md:group-hover:opacity-100">
           Tap for details →

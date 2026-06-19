@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { BookDemoButton } from "@/components/shared/BookDemoButton";
 import { RequestDemoButton } from "@/components/shared/RequestDemoButton";
 import { ReviewForm } from "@/components/shared/ReviewForm";
+import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
+import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 
@@ -102,7 +104,49 @@ function SignInPrompt({ title, description, compact = false }) {
   );
 }
 
-export function CoachingProfileView({ coaching, session }) {
+function getVideoEmbedUrl(url) {
+  if (!url) return null;
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return null;
+}
+
+function GalleryStrip({ images }) {
+  const [active, setActive] = useState(null);
+  if (!images?.length) return null;
+
+  return (
+    <>
+      <div className="mt-6 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        {images.map((url) => (
+          <button
+            key={url}
+            type="button"
+            onClick={() => setActive(url)}
+            className="h-24 w-32 shrink-0 snap-start overflow-hidden rounded-xl border border-border"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="h-full w-full object-cover" />
+          </button>
+        ))}
+      </div>
+      {active && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setActive(null)}
+          role="presentation"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={active} alt="" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
+        </div>
+      )}
+    </>
+  );
+}
+
+export function CoachingProfileView({ coaching, session, isSaved = false }) {
   const [activeSection, setActiveSection] = useState("overview");
   const isLoggedIn = !!session?.user;
   const isStudent = session?.user?.role === "STUDENT";
@@ -110,6 +154,8 @@ export function CoachingProfileView({ coaching, session }) {
   const openDemos = coaching.demoSlots?.filter((s) => s.status === "OPEN") ?? [];
   const courseCount = coaching.courses?.length ?? 0;
   const reviewCount = coaching.reviewCount ?? coaching.reviews?.length ?? 0;
+  const facultyProfiles = Array.isArray(coaching.facultyProfiles) ? coaching.facultyProfiles : [];
+  const videoEmbedUrl = getVideoEmbedUrl(coaching.videoUrl);
 
   function scrollToSection(sectionId) {
     setActiveSection(sectionId);
@@ -170,6 +216,12 @@ export function CoachingProfileView({ coaching, session }) {
                         <Badge variant="success">Verified</Badge>
                       )}
                     </div>
+                    {isStudent && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <SaveCoachingButton coachingId={coaching.id} initialSaved={isSaved} />
+                        <CompareCoachingButton coaching={coaching} />
+                      </div>
+                    )}
                     <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">
                       <MapPinIcon className="h-4 w-4 shrink-0 text-secondary" />
                       {[coaching.locality, coaching.city].filter(Boolean).join(", ")}
@@ -248,6 +300,8 @@ export function CoachingProfileView({ coaching, session }) {
           </Card>
         </div>
 
+        <GalleryStrip images={coaching.galleryImages} />
+
         {/* Section nav */}
         <div className="sticky top-0 z-30 -mx-4 mt-6 border-b border-border bg-white/95 px-4 backdrop-blur sm:-mx-6 sm:px-6">
           <div className="flex gap-1 overflow-x-auto py-1">
@@ -291,6 +345,63 @@ export function CoachingProfileView({ coaching, session }) {
                 </p>
               ) : (
                 <p className="text-sm text-muted">No description available yet.</p>
+              )}
+
+              {coaching.achievementsText && (
+                <div className="rounded-xl border border-success/20 bg-success/5 p-4">
+                  <h3 className="text-sm font-semibold text-foreground">Results & achievements</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{coaching.achievementsText}</p>
+                </div>
+              )}
+
+              {videoEmbedUrl && (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Video introduction</h3>
+                  <div className="mt-3 aspect-video overflow-hidden rounded-xl border border-border">
+                    <iframe
+                      src={videoEmbedUrl}
+                      title={`${coaching.name} introduction`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+
+              {facultyProfiles.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Our faculty</h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {facultyProfiles.map((faculty, index) => (
+                      <Card key={`${faculty.name}-${index}`} className="!p-4">
+                        <p className="font-semibold text-foreground">{faculty.name}</p>
+                        {faculty.qualification && (
+                          <p className="mt-1 text-xs font-medium text-secondary">{faculty.qualification}</p>
+                        )}
+                        {faculty.bio && (
+                          <p className="mt-2 text-sm text-muted">{faculty.bio}</p>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {coaching.branches?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Branches</h3>
+                  <div className="mt-3 space-y-2">
+                    {coaching.branches.map((branch) => (
+                      <div key={branch.id} className="rounded-lg border border-border bg-white px-4 py-3 text-sm">
+                        <p className="font-medium text-foreground">{branch.branchName}</p>
+                        <p className="mt-1 text-muted">
+                          {[branch.locality, branch.city].filter(Boolean).join(", ") || branch.address || "Location not listed"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {coaching.subjects?.length > 0 && (
@@ -661,6 +772,12 @@ export function CoachingProfileView({ coaching, session }) {
                       {coaching.avgRating?.toFixed(1) || "0.0"} ({reviewCount})
                     </dd>
                   </div>
+                  {coaching.avgResponseHours != null && (
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-muted">Response time</dt>
+                      <dd className="font-medium text-secondary">~{coaching.avgResponseHours}h</dd>
+                    </div>
+                  )}
                 </dl>
               </Card>
 

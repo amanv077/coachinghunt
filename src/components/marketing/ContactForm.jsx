@@ -12,14 +12,30 @@ export function ContactForm() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        addToast(data.message || "Failed to send message", "error");
+        return;
+      }
+
       setForm({ name: "", email: "", message: "" });
-      addToast("We'll get back to you within 24 hours.", "success");
-    }, 600);
+      addToast("We will get back to you within 24 hours.", "success");
+    } catch {
+      addToast("Something went wrong. Please try again.", "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

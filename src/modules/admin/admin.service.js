@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { getProfileCompleteness } from "@/modules/coachings/coachings.service";
 
 export async function getAdminAnalytics() {
   const [totalStudents, totalCoachings, activeCourses, activeDemoSlots, totalBookings, bookingsByCity] =
@@ -156,5 +157,10 @@ export async function getCoachingDashboard(userId) {
     }),
   ]);
 
-  return { profile: coaching, courseCount, activeDemoSlots, bookingSummary, recentBookings };
+  const completeness = getProfileCompleteness(coaching, {
+    courseCount,
+    demoSlotCount: activeDemoSlots,
+  });
+
+  return { profile: coaching, courseCount, activeDemoSlots, bookingSummary, recentBookings, completeness };
 }

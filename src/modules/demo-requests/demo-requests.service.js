@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { createBooking } from "@/modules/bookings/bookings.service";
 import { createDemoSlot } from "@/modules/demo-slots/demo-slots.service";
+import { computeAvgResponseHours } from "@/modules/coachings/coachings.service";
 
 const requestInclude = {
   student: { include: { user: { select: { id: true, name: true, email: true, phone: true } } } },
@@ -185,7 +186,7 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
 
   if (action === "decline") {
     if (!responseNote?.trim()) throw new Error("Please provide a reason for declining");
-    return prisma.demoRequest.update({
+    const updated = await prisma.demoRequest.update({
       where: { id: requestId },
       data: {
         status: "DECLINED",
@@ -193,6 +194,8 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
       },
       include: requestInclude,
     });
+    await refreshResponseHours(coaching.id);
+    return updated;
   }
 
   if (action !== "approve" && action !== "reschedule") {
@@ -216,7 +219,7 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
     topic,
   });
 
-  return prisma.demoRequest.update({
+  const updated = await prisma.demoRequest.update({
     where: { id: requestId },
     data: {
       status: action === "approve" ? "APPROVED" : "RESCHEDULED",
@@ -226,5 +229,15 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
       resultingSlotId: slot.id,
     },
     include: requestInclude,
+  });
+  await refreshResponseHours(coaching.id);
+  return updated;
+}
+
+async function refreshResponseHours(coachingId) {
+  const avgResponseHours = await computeAvgResponseHours(coachingId);
+  await prisma.coachingProfile.update({
+    where: { id: coachingId },
+    data: { avgResponseHours },
   });
 }

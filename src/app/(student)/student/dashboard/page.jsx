@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getStudentDashboard } from "@/modules/admin/admin.service";
 import { getPendingDemoRequestCount } from "@/modules/demo-requests/demo-requests.service";
+import { listSavedCoachings } from "@/modules/saved-coachings/saved-coachings.service";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -36,6 +37,7 @@ export default async function StudentDashboardPage() {
   if (!data) redirect("/login");
 
   const pendingRequestCount = await getPendingDemoRequestCount(session.user.id);
+  const savedCoachings = await listSavedCoachings(session.user.id);
 
   const { profile, upcomingBookings, attendedCount, offers, topCoachings } = data;
   const primaryExam = profile.targetExams?.[0];
@@ -173,6 +175,13 @@ export default async function StudentDashboardPage() {
         <SectionHeader title={discoverTitle} href={searchHref} linkLabel="Browse all" />
         <CoachingCardGrid coachings={topCoachings} />
       </section>
+
+      {savedCoachings.length > 0 && (
+        <section>
+          <SectionHeader title="Saved Coachings" href="/search" linkLabel="Find more" />
+          <CoachingCardGrid coachings={savedCoachings} savedIds={savedCoachings.map((c) => c.id)} showActions />
+        </section>
+      )}
 
       {offers.length > 0 && (
         <section>

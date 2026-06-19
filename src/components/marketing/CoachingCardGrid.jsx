@@ -5,7 +5,7 @@ import { CoachingCard } from "@/components/marketing/CoachingCard";
 import { CoachingPreviewSheet } from "@/components/marketing/CoachingPreviewSheet";
 import { cn } from "@/lib/utils/cn";
 
-export function CoachingCardGrid({ coachings, className }) {
+export function CoachingCardGrid({ coachings, className, savedIds = [], showActions = false }) {
   const [previewSlug, setPreviewSlug] = useState(null);
 
   return (
@@ -16,6 +16,8 @@ export function CoachingCardGrid({ coachings, className }) {
             key={coaching.id}
             coaching={coaching}
             onPreview={() => setPreviewSlug(coaching.slug)}
+            isSaved={savedIds.includes(coaching.id)}
+            showActions={showActions}
           />
         ))}
       </div>

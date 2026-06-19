@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getCoachingBySlugOrId } from "@/modules/coachings/coachings.service";
+import { getSavedCoachingIds } from "@/modules/saved-coachings/saved-coachings.service";
 import { CoachingProfileView } from "@/components/marketing/CoachingProfileView";
 
 export async function generateMetadata({ params }) {
@@ -20,5 +21,11 @@ export default async function CoachingDetailPage({ params }) {
 
   if (!coaching) notFound();
 
-  return <CoachingProfileView coaching={coaching} session={session} />;
+  let isSaved = false;
+  if (session?.user?.role === "STUDENT") {
+    const savedIds = await getSavedCoachingIds(session.user.id);
+    isSaved = savedIds.includes(coaching.id);
+  }
+
+  return <CoachingProfileView coaching={coaching} session={session} isSaved={isSaved} />;
 }

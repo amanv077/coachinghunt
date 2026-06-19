@@ -9,36 +9,38 @@ import { cn } from "@/lib/utils/cn";
 
 const quickFilters = ["JEE", "NEET", "Boards", "Foundation"];
 
-const stats = [
-  {
-    value: "500+",
-    label: "Coachings listed",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-  },
-  {
-    value: "10k+",
-    label: "Demo bookings",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    value: "50+",
-    label: "Cities covered",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-];
+const statIcons = {
+  coachings: (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  ),
+  bookings: (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  ),
+  cities: (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+};
+
+function formatStatValue(count) {
+  if (count >= 1000) return `${Math.floor(count / 1000)}k+`;
+  if (count > 0) return `${count}+`;
+  return "0";
+}
+
+function buildStats(stats = {}) {
+  return [
+    { value: formatStatValue(stats.coachings ?? 0), label: "Coachings listed", icon: statIcons.coachings },
+    { value: formatStatValue(stats.bookings ?? 0), label: "Demo bookings", icon: statIcons.bookings },
+    { value: formatStatValue(stats.cities ?? 0), label: "Cities covered", icon: statIcons.cities },
+  ];
+}
 
 const trustBadges = [
   { label: "Free to use", icon: "✓" },
@@ -46,10 +48,11 @@ const trustBadges = [
   { label: "Instant confirmation", icon: "✓" },
 ];
 
-export function HomepageHero() {
+export function HomepageHero({ stats: platformStats }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
+  const stats = buildStats(platformStats);
 
   function handleSearch(e) {
     e.preventDefault();

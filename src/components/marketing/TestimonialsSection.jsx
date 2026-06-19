@@ -1,36 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-
-const testimonials = [
-  {
-    name: "Priya Sharma",
-    exam: "NEET",
-    city: "Delhi",
-    rating: 5,
-    quote:
-      "I booked demos at three institutes in one afternoon. Attended two, and found the perfect fit without wasting weeks visiting randomly.",
-    initials: "PS",
-  },
-  {
-    name: "Arjun Mehta",
-    exam: "JEE",
-    city: "Jaipur",
-    rating: 5,
-    quote:
-      "CoachingHunt made it easy to compare fees and schedules before stepping foot in a classroom. The booking confirmation was instant.",
-    initials: "AM",
-  },
-  {
-    name: "Sneha Patel",
-    exam: "Boards",
-    city: "Ahmedabad",
-    rating: 4,
-    quote:
-      "As a parent, I loved seeing verified institutes with real reviews. We booked a demo for my daughter and felt confident in our choice.",
-    initials: "SP",
-  },
-];
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 function StarRating({ rating }) {
   return (
@@ -49,7 +22,16 @@ function StarRating({ rating }) {
   );
 }
 
-export function TestimonialsSection() {
+function getInitials(name) {
+  return name
+    ?.split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export function TestimonialsSection({ reviews = [] }) {
   return (
     <section className="bg-surface-muted py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -65,34 +47,55 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="mt-12 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
-          {testimonials.map((t, i) => (
-            <motion.article
-              key={t.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              viewport={{ once: true }}
-              className="min-w-[280px] flex-shrink-0 snap-start rounded-2xl border border-border bg-white p-6 shadow-sm lg:min-w-0"
-            >
-              <StarRating rating={t.rating} />
-              <blockquote className="mt-4 text-sm leading-relaxed text-muted">
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-              <div className="mt-6 flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white">
-                  {t.initials}
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted">
-                    {t.exam} · {t.city}
-                  </p>
-                </div>
-              </div>
-            </motion.article>
-          ))}
-        </div>
+        {reviews.length === 0 ? (
+          <Card className="mx-auto mt-12 max-w-lg text-center">
+            <p className="text-lg font-semibold text-foreground">Be the first to share your story</p>
+            <p className="mt-2 text-sm text-muted">
+              Book a demo, attend a session, and leave a review to help other students choose wisely.
+            </p>
+            <Link href="/search" className="mt-6 inline-block w-full sm:w-auto">
+              <Button className="min-h-11 w-full sm:w-auto">Find coachings</Button>
+            </Link>
+          </Card>
+        ) : (
+          <div className="mt-12 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
+            {reviews.map((review, i) => {
+              const name = review.student?.user?.name || "Student";
+              const exam = review.coaching?.targetExams?.[0] || "Student";
+              const city = review.coaching?.city || "India";
+
+              return (
+                <motion.article
+                  key={review.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  viewport={{ once: true }}
+                  className="min-w-[280px] flex-shrink-0 snap-start rounded-2xl border border-border bg-white p-6 shadow-sm lg:min-w-0"
+                >
+                  <StarRating rating={review.rating} />
+                  <blockquote className="mt-4 text-sm leading-relaxed text-muted">
+                    &ldquo;{review.comment}&rdquo;
+                  </blockquote>
+                  <div className="mt-6 flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-white">
+                      {getInitials(name)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{name}</p>
+                      <p className="text-xs text-muted">
+                        {exam} · {city}
+                      </p>
+                      {review.coaching?.name && (
+                        <p className="text-xs text-secondary">{review.coaching.name}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
