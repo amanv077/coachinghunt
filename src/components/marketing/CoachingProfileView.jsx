@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { BookDemoButton } from "@/components/shared/BookDemoButton";
+import { RequestDemoButton } from "@/components/shared/RequestDemoButton";
 import { ReviewForm } from "@/components/shared/ReviewForm";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
@@ -221,6 +222,14 @@ export function CoachingProfileView({ coaching, session }) {
                   <Button size="lg" className="min-h-11" onClick={() => scrollToSection("demos")}>
                     Book free demo
                   </Button>
+                ) : isLoggedIn && isStudent ? (
+                  <RequestDemoButton
+                    coachingId={coaching.id}
+                    coachingName={coaching.name}
+                    size="lg"
+                    className="min-h-11"
+                    label="Request a demo"
+                  />
                 ) : (
                   <Button size="lg" variant="secondary" className="min-h-11" onClick={() => scrollToSection("courses")}>
                     View courses
@@ -501,14 +510,29 @@ export function CoachingProfileView({ coaching, session }) {
                   )}
                 </div>
               ) : (
-                <Card className="text-center">
+                <Card className="space-y-4 text-center">
                   <p className="text-sm text-muted">
-                    No demo slots scheduled. Check back soon or explore their courses.
+                    No demo slots scheduled right now. Request a date that works for you and the coaching will confirm.
                   </p>
+                  {isLoggedIn && isStudent ? (
+                    <RequestDemoButton
+                      coachingId={coaching.id}
+                      coachingName={coaching.name}
+                      size="md"
+                      className="min-h-11 w-full sm:w-auto"
+                      label="Request a demo"
+                    />
+                  ) : !isLoggedIn ? (
+                    <SignInPrompt
+                      title="Want to request a demo?"
+                      description="Sign in to ask for a demo on your preferred date."
+                      compact
+                    />
+                  ) : null}
                   {courseCount > 0 && (
                     <Button
                       variant="secondary"
-                      className="mt-3 min-h-11"
+                      className="min-h-11 w-full sm:w-auto"
                       onClick={() => scrollToSection("courses")}
                     >
                       View courses
@@ -579,6 +603,14 @@ export function CoachingProfileView({ coaching, session }) {
                   <Button className="mt-4 min-h-11 w-full" onClick={() => scrollToSection("demos")}>
                     View demo slots
                   </Button>
+                ) : isLoggedIn && isStudent ? (
+                  <RequestDemoButton
+                    coachingId={coaching.id}
+                    coachingName={coaching.name}
+                    className="mt-4 min-h-11 w-full"
+                    size="md"
+                    label="Request a demo"
+                  />
                 ) : (
                   <Button
                     variant="secondary"
@@ -650,6 +682,14 @@ export function CoachingProfileView({ coaching, session }) {
           <Button className="min-h-11 w-full" size="lg" onClick={() => scrollToSection("demos")}>
             {isLoggedIn ? "Book free demo" : "View demo slots"}
           </Button>
+        ) : isLoggedIn && isStudent ? (
+          <RequestDemoButton
+            coachingId={coaching.id}
+            coachingName={coaching.name}
+            className="min-h-11 w-full"
+            size="lg"
+            label="Request a demo"
+          />
         ) : (
           <Button
             className="min-h-11 w-full"

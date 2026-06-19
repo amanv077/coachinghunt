@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getStudentDashboard } from "@/modules/admin/admin.service";
+import { getPendingDemoRequestCount } from "@/modules/demo-requests/demo-requests.service";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -33,6 +34,8 @@ export default async function StudentDashboardPage() {
 
   const data = await getStudentDashboard(session.user.id);
   if (!data) redirect("/login");
+
+  const pendingRequestCount = await getPendingDemoRequestCount(session.user.id);
 
   const { profile, upcomingBookings, attendedCount, offers, topCoachings } = data;
   const searchHref = buildSearchHref({
@@ -75,6 +78,24 @@ export default async function StudentDashboardPage() {
       </div>
 
       {profileIncomplete && <ProfileNudgeBanner />}
+
+      {pendingRequestCount > 0 && (
+        <Link href="/student/bookings" className="block">
+          <Card className="border-l-4 border-warning bg-amber-50/60 !p-4 transition hover:shadow-md">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold text-foreground">
+                  {pendingRequestCount} demo request{pendingRequestCount !== 1 ? "s" : ""} pending
+                </p>
+                <p className="mt-1 text-sm text-muted">
+                  Waiting for coaching to confirm or suggest another time.
+                </p>
+              </div>
+              <span className="text-sm font-medium text-secondary">View requests →</span>
+            </div>
+          </Card>
+        </Link>
+      )}
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         <StatCard

@@ -75,6 +75,14 @@ enum OfferStatus {
   DRAFT
 }
 
+enum DemoRequestStatus {
+  PENDING
+  APPROVED
+  RESCHEDULED
+  DECLINED
+  CANCELLED
+}
+
 model User {
   id              String           @id @default(cuid())
   name            String
@@ -104,6 +112,7 @@ model StudentProfile {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookings          Booking[]
   reviews           Review[]
+  demoRequests      DemoRequest[]
 }
 
 model CoachingProfile {
@@ -146,6 +155,7 @@ model CoachingProfile {
   bookings           Booking[]
   reviews            Review[]
   offers             Offer[]
+  demoRequests       DemoRequest[]
 
   @@index([city])
   @@index([locality])
@@ -197,6 +207,7 @@ model Course {
   demoSlots       DemoSlot[]
   bookings        Booking[]
   reviews         Review[]
+  demoRequests    DemoRequest[]
 
   @@index([coachingId])
   @@index([targetExam])
@@ -226,6 +237,7 @@ model DemoSlot {
   coaching        CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
   branch          CoachingBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
   bookings        Booking[]
+  demoRequests    DemoRequest[]
 
   @@index([courseId])
   @@index([demoDate])
@@ -285,6 +297,31 @@ model Offer {
   updatedAt   DateTime        @updatedAt
   coaching    CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
 
+  @@index([coachingId])
+  @@index([status])
+}
+
+model DemoRequest {
+  id              String            @id @default(cuid())
+  studentId       String
+  coachingId      String
+  courseId        String?
+  preferredDate   DateTime?
+  preferredTime   String?
+  message         String?
+  status          DemoRequestStatus @default(PENDING)
+  responseNote    String?
+  proposedDate    DateTime?
+  proposedTime    String?
+  resultingSlotId String?           @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  student         StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  coaching        CoachingProfile   @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  course          Course?           @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  resultingSlot   DemoSlot?         @relation(fields: [resultingSlotId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
   @@index([coachingId])
   @@index([status])
 }

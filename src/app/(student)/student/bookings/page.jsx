@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getStudentBookings } from "@/modules/bookings/bookings.service";
+import { getStudentDemoRequests } from "@/modules/demo-requests/demo-requests.service";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -7,6 +8,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { CancelBookingButton } from "@/components/shared/CancelBookingButton";
+import { StudentBookingsTabs } from "@/components/student/StudentBookingsTabs";
+import { StudentDemoRequestCard } from "@/components/student/StudentDemoRequestCard";
 import {
   buildSearchHref,
   formatDemoDate,
@@ -47,6 +50,8 @@ export default async function StudentBookingsPage() {
   if (!session) redirect("/login");
 
   const bookings = await getStudentBookings(session.user.id);
+  const demoRequests = await getStudentDemoRequests(session.user.id);
+  const pendingRequestCount = demoRequests.filter((r) => r.status === "PENDING").length;
   const today = startOfToday();
 
   const upcoming = bookings
@@ -70,20 +75,15 @@ export default async function StudentBookingsPage() {
 
   const searchHref = buildSearchHref();
 
-  return (
+  const bookingsContent = (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">My Bookings</h1>
-        <p className="mt-1 text-muted">All your demo session bookings</p>
-      </div>
-
       <section>
         <SectionHeader title="Upcoming" />
         {upcoming.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white px-6 py-12 text-center">
             <h3 className="text-lg font-semibold text-foreground">No upcoming demos</h3>
             <p className="mt-2 max-w-md text-sm text-muted">
-              Book a free demo session to get started.
+              Book a free demo session or request one on your preferred date.
             </p>
             <Link href={searchHref} className="mt-4 w-full sm:w-auto">
               <Button className="w-full min-h-11 sm:w-auto">Find Coachings</Button>
@@ -115,6 +115,43 @@ export default async function StudentBookingsPage() {
           </div>
         )}
       </section>
+    </div>
+  );
+
+  const requestsContent = (
+    <section>
+      {demoRequests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white px-6 py-12 text-center">
+          <h3 className="text-lg font-semibold text-foreground">No demo requests yet</h3>
+          <p className="mt-2 max-w-md text-sm text-muted">
+            When a coaching has no open slots, request a demo on a date that works for you.
+          </p>
+          <Link href={searchHref} className="mt-4 w-full sm:w-auto">
+            <Button className="w-full min-h-11 sm:w-auto">Find Coachings</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {demoRequests.map((request) => (
+            <StudentDemoRequestCard key={request.id} request={request} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">My Bookings</h1>
+        <p className="mt-1 text-muted">Your demo bookings and requests</p>
+      </div>
+
+      <StudentBookingsTabs
+        bookingsContent={bookingsContent}
+        requestsContent={requestsContent}
+        pendingCount={pendingRequestCount}
+      />
     </div>
   );
 }

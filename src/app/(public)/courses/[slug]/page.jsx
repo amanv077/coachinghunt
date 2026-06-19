@@ -5,6 +5,7 @@ import { getCourseBySlugOrId } from "@/modules/courses/courses.service";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { BookDemoButton } from "@/components/shared/BookDemoButton";
+import { RequestDemoButton } from "@/components/shared/RequestDemoButton";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -48,7 +49,22 @@ export default async function CourseDetailPage({ params }) {
         {!session?.user ? (
           <p className="mt-4 text-muted"><Link href="/login" className="text-primary underline">Login</Link> to book a demo session.</p>
         ) : course.demoSlots?.length === 0 ? (
-          <p className="mt-4 text-muted">No upcoming demo slots.</p>
+          <Card className="mt-4 space-y-4">
+            <p className="text-muted">
+              No upcoming demo slots. Request a date and the coaching will confirm or suggest another time.
+            </p>
+            {session.user.role === "STUDENT" && (
+              <RequestDemoButton
+                coachingId={course.coachingId}
+                courseId={course.id}
+                coachingName={course.coaching.name}
+                courseTitle={course.title}
+                className="min-h-11 w-full sm:w-auto"
+                size="md"
+                label="Request a demo"
+              />
+            )}
+          </Card>
         ) : (
           <div className="mt-4 space-y-3">
             {course.demoSlots.map((slot) => (
