@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { SignupRoleTabs } from "@/components/shared/SignupRoleTabs";
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -54,7 +55,9 @@ export default function StudentSignupPage() {
   }
 
   return (
-    <Card className="shadow-md">
+    <>
+      <SignupRoleTabs active="student" />
+      <Card className="shadow-md">
       <div className="border-b border-border pb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Create student account</h1>
         <p className="mt-2 text-sm text-muted">Book demo sessions and track your coaching search</p>
@@ -107,5 +110,6 @@ export default function StudentSignupPage() {
         </Link>
       </p>
     </Card>
+    </>
   );
 }

@@ -88,7 +88,7 @@ function LoginForm() {
 
       <div className="mt-6 border-t border-border pt-6 text-center text-sm text-muted">
         New here?{" "}
-        <Link href="/signup/student" className="font-semibold text-secondary hover:underline">
+        <Link href="/signup" className="font-semibold text-secondary hover:underline">
           Student signup
         </Link>{" "}
         or{" "}

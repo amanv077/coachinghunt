@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
+import { SignupRoleTabs } from "@/components/shared/SignupRoleTabs";
 import { Button } from "@/components/ui/Button";
 
 export default function CoachingSignupPage() {
@@ -18,7 +19,6 @@ export default function CoachingSignupPage() {
     password: "",
     city: "",
     locality: "",
-    category: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +45,9 @@ export default function CoachingSignupPage() {
   }
 
   return (
-    <Card className="shadow-md">
+    <>
+      <SignupRoleTabs active="coaching" />
+      <Card className="shadow-md">
       <div className="border-b border-border pb-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
           Step 1 of 1 — Create your profile
@@ -70,13 +72,6 @@ export default function CoachingSignupPage() {
             label="Coaching Name"
             value={form.coachingName}
             onChange={(e) => setForm({ ...form, coachingName: e.target.value })}
-            required
-          />
-          <Input
-            label="Category"
-            placeholder="Engineering Entrance, Medical, etc."
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
             required
           />
         </fieldset>
@@ -137,5 +132,6 @@ export default function CoachingSignupPage() {
         </Link>
       </p>
     </Card>
+    </>
   );
 }

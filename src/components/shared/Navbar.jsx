@@ -227,7 +227,7 @@ export function Navbar() {
                   Login
                 </Button>
               </Link>
-              <Link href="/signup/student">
+              <Link href="/signup">
                 <Button size="sm">Sign Up</Button>
               </Link>
             </div>
@@ -286,7 +286,7 @@ export function Navbar() {
                       Login
                     </Button>
                   </Link>
-                  <Link href="/signup/student" className="block">
+                  <Link href="/signup" className="block">
                     <Button className="min-h-11 w-full">Sign Up</Button>
                   </Link>
                 </div>

@@ -12,7 +12,6 @@ const schema = z.object({
   password: z.string().min(6),
   city: z.string().min(2),
   locality: z.string().min(2),
-  category: z.string().min(2),
 });
 
 export async function POST(request) {
@@ -48,7 +47,6 @@ export async function POST(request) {
             slug: `${slug}-${Date.now().toString(36)}`,
             city: parsed.data.city,
             locality: parsed.data.locality,
-            category: parsed.data.category,
             listingStatus: "DRAFT",
           },
         },

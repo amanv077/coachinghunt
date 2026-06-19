@@ -185,7 +185,7 @@ export function HomepageHero() {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-sm">
           <Link
-            href="/signup/student"
+            href="/signup"
             className="font-semibold text-secondary underline-offset-4 hover:underline"
           >
             Join as Student →

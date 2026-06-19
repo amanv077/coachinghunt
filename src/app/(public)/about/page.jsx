@@ -70,7 +70,7 @@ export default function AboutPage() {
           <p className="mt-3 text-white/80">
             Create a free student account and start booking demo sessions today.
           </p>
-          <Link href="/signup/student" className="mt-6 inline-block">
+          <Link href="/signup" className="mt-6 inline-block">
             <Button size="lg" className="min-h-11 min-w-[200px] bg-white text-secondary hover:bg-secondary-light">
               Get started free
             </Button>

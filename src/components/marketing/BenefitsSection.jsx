@@ -8,7 +8,7 @@ const benefits = [
       "Book demos with email confirmation",
       "Track all bookings in one dashboard",
     ],
-    cta: { label: "Create student account", href: "/signup/student" },
+    cta: { label: "Create student account", href: "/signup" },
     gradient: true,
   },
   {

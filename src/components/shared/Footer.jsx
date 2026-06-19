@@ -13,7 +13,7 @@ export function Footer() {
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Link
-              href="/signup/student"
+              href="/signup"
               className="min-h-11 rounded-lg bg-white px-5 py-2.5 text-center text-sm font-semibold text-secondary transition hover:bg-secondary-light"
             >
               Student Signup
@@ -54,7 +54,7 @@ export function Footer() {
         <div>
           <h4 className="font-semibold text-secondary">Get started</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted">
-            <li><Link href="/signup/student" className="hover:text-secondary">Student Signup</Link></li>
+            <li><Link href="/signup" className="hover:text-secondary">Student Signup</Link></li>
             <li><Link href="/login" className="hover:text-secondary">Login</Link></li>
           </ul>
         </div>

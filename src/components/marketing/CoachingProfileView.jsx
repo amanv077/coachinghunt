@@ -94,7 +94,7 @@ function SignInPrompt({ title, description, compact = false }) {
         <Link href="/login">
           <Button size="sm" className="min-h-9">Sign in</Button>
         </Link>
-        <Link href="/signup/student">
+        <Link href="/signup">
           <Button size="sm" variant="secondary" className="min-h-9">Create free account</Button>
         </Link>
       </div>
