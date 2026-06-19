@@ -14,12 +14,12 @@ export function ProfileNudgeBanner() {
       <div>
         <p className="font-medium text-secondary">Complete your profile</p>
         <p className="mt-1 text-sm text-muted">
-          Add your exam and city to get personalised coaching suggestions.
+          Add your city and exam interests to get personalised coaching suggestions.
         </p>
       </div>
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-        <Link href="/student/profile" className="w-full sm:w-auto">
-          <Button className="w-full min-h-11 sm:w-auto">My Profile</Button>
+        <Link href="/student/complete-profile" className="w-full sm:w-auto">
+          <Button className="w-full min-h-11 sm:w-auto">Complete profile</Button>
         </Link>
         <Button
           variant="ghost"

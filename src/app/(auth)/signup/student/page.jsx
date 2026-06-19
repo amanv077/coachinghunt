@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -14,8 +15,6 @@ export default function StudentSignupPage() {
     email: "",
     phone: "",
     password: "",
-    city: "",
-    targetExam: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,14 +30,27 @@ export default function StudentSignupPage() {
       body: JSON.stringify(form),
     });
     const data = await res.json();
-    setLoading(false);
 
     if (!data.success) {
+      setLoading(false);
       setError(data.message);
       return;
     }
 
-    router.push("/login?registered=student");
+    const signInResult = await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
+
+    setLoading(false);
+
+    if (signInResult?.error) {
+      router.push("/login?registered=student&redirect=/student/complete-profile");
+      return;
+    }
+
+    router.push("/student/complete-profile");
   }
 
   return (
@@ -51,54 +63,34 @@ export default function StudentSignupPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground">Personal info</legend>
-          <Input
-            label="Full Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
-          <Input
-            label="Phone"
-            type="tel"
-            value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-          />
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground">Your goals</legend>
-          <Input
-            label="City"
-            value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-            required
-          />
-          <Input
-            label="Target Exam"
-            placeholder="JEE, NEET, Boards, etc."
-            value={form.targetExam}
-            onChange={(e) => setForm({ ...form, targetExam: e.target.value })}
-            required
-          />
-        </fieldset>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <Input
+          label="Full Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          required
+        />
+        <Input
+          label="Phone"
+          type="tel"
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          required
+        />
+        <Input
+          label="Password"
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          required
+        />
 
         {error && (
           <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>

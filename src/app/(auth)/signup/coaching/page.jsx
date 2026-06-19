@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { Button } from "@/components/ui/Button";
 
 export default function CoachingSignupPage() {
@@ -107,10 +108,10 @@ export default function CoachingSignupPage() {
 
         <fieldset className="space-y-4">
           <legend className="text-sm font-semibold text-foreground">Location</legend>
-          <Input
+          <CityAutocomplete
             label="City"
             value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            onChange={(city) => setForm({ ...form, city })}
             required
           />
           <Input

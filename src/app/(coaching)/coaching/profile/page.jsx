@@ -6,11 +6,24 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
+import { ExamMultiSelect } from "@/components/shared/ExamMultiSelect";
 
 export default function CoachingProfilePage() {
   const { addToast } = useToast();
   const [profileId, setProfileId] = useState("");
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    tagline: "",
+    description: "",
+    city: "",
+    locality: "",
+    category: "",
+    phone: "",
+    targetExams: [],
+    subjects: "",
+    listingStatus: "DRAFT",
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,7 +40,7 @@ export default function CoachingProfilePage() {
             locality: d.data.locality || "",
             category: d.data.category || "",
             phone: d.data.phone || "",
-            targetExams: d.data.targetExams?.join(", ") || "",
+            targetExams: d.data.targetExams || [],
             subjects: d.data.subjects?.join(", ") || "",
             listingStatus: d.data.listingStatus || "DRAFT",
           });
@@ -49,7 +62,7 @@ export default function CoachingProfilePage() {
         locality: form.locality,
         category: form.category,
         phone: form.phone,
-        targetExams: form.targetExams.split(",").map((s) => s.trim()).filter(Boolean),
+        targetExams: form.targetExams,
         subjects: form.subjects.split(",").map((s) => s.trim()).filter(Boolean),
         listingStatus: form.listingStatus,
       }),
@@ -68,14 +81,22 @@ export default function CoachingProfilePage() {
           <Input label="Tagline" value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} />
           <Textarea label="Description" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            <CityAutocomplete
+              label="City"
+              value={form.city}
+              onChange={(city) => setForm({ ...form, city })}
+            />
             <Input label="Locality" value={form.locality} onChange={(e) => setForm({ ...form, locality: e.target.value })} />
           </div>
           <Input label="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
           <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <Input label="Target Exams (comma separated)" value={form.targetExams} onChange={(e) => setForm({ ...form, targetExams: e.target.value })} />
+          <ExamMultiSelect
+            label="Target exams"
+            value={form.targetExams}
+            onChange={(targetExams) => setForm({ ...form, targetExams })}
+          />
           <Input label="Subjects (comma separated)" value={form.subjects} onChange={(e) => setForm({ ...form, subjects: e.target.value })} />
-          <Button type="submit" loading={loading}>Save Profile</Button>
+          <Button type="submit" loading={loading} className="min-h-11 w-full md:w-auto">Save Profile</Button>
         </form>
       </Card>
     </div>

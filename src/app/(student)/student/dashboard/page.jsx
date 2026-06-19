@@ -38,15 +38,22 @@ export default async function StudentDashboardPage() {
   const pendingRequestCount = await getPendingDemoRequestCount(session.user.id);
 
   const { profile, upcomingBookings, attendedCount, offers, topCoachings } = data;
+  const primaryExam = profile.targetExams?.[0];
+  const examLabel =
+    profile.targetExams?.length > 1
+      ? `${primaryExam} +${profile.targetExams.length - 1}`
+      : primaryExam;
+
   const searchHref = buildSearchHref({
-    targetExam: profile.targetExam,
+    targetExams: profile.targetExams,
     city: profile.city,
   });
-  const profileIncomplete = !profile.targetExam || !profile.city;
+  const profileIncomplete =
+    !profile.city || !profile.targetExams || profile.targetExams.length === 0;
   const firstName = session.user.name?.split(" ")[0] || "there";
 
   const discoverTitle = [
-    profile.targetExam ? `Top Coachings for ${profile.targetExam}` : "Top Coachings",
+    primaryExam ? `Top Coachings for ${primaryExam}` : "Top Coachings",
     profile.city ? `in ${profile.city}` : null,
   ]
     .filter(Boolean)
@@ -58,8 +65,8 @@ export default async function StudentDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}!</h1>
           <p className="mt-1 text-sm text-muted sm:text-base">
-            {profile.targetExam
-              ? `Ready to find the right coaching for ${profile.targetExam}?`
+            {primaryExam
+              ? `Ready to find the right coaching for ${primaryExam}?`
               : "Track your demos, explore offers, and find the right coaching."}
           </p>
         </div>
@@ -105,9 +112,9 @@ export default async function StudentDashboardPage() {
           href="/student/bookings"
         />
         <StatCard
-          label="Target Exam"
-          value={profile.targetExam || "—"}
-          sublabel={profile.targetExam ? `${attendedCount} attended` : "Set exam →"}
+          label="Target Exams"
+          value={examLabel || "—"}
+          sublabel={primaryExam ? `${attendedCount} attended` : "Set exams →"}
           href="/student/profile"
         />
         <StatCard

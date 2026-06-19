@@ -38,9 +38,10 @@ export function getRelativeDateLabel(date) {
   return `${Math.abs(diffDays)} days ago`;
 }
 
-export function buildSearchHref({ targetExam, city } = {}) {
+export function buildSearchHref({ targetExam, targetExams, city } = {}) {
   const params = new URLSearchParams();
-  if (targetExam) params.set("targetExam", targetExam);
+  const exam = targetExam || targetExams?.[0];
+  if (exam) params.set("targetExam", exam);
   if (city) params.set("city", city);
   const query = params.toString();
   return query ? `/search?${query}` : "/search";

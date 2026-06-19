@@ -97,7 +97,9 @@ export async function getStudentDashboard(userId) {
   const personalisedWhere = {
     listingStatus: "ACTIVE",
     ...(student.city ? { city: { contains: student.city, mode: "insensitive" } } : {}),
-    ...(student.targetExam ? { targetExams: { has: student.targetExam } } : {}),
+    ...(student.targetExams?.length > 0
+      ? { targetExams: { hasSome: student.targetExams } }
+      : {}),
   };
 
   const [upcomingBookings, attendedCount, offers, personalisedCoachings] = await Promise.all([

@@ -104,7 +104,7 @@ model StudentProfile {
   userId            String    @unique
   city              String?
   classLevel        String?
-  targetExam        String?
+  targetExams       String[]
   schoolName        String?
   preferredSubjects String[]
   createdAt         DateTime  @default(now())

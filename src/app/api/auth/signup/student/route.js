@@ -8,8 +8,6 @@ const schema = z.object({
   email: z.string().email(),
   phone: z.string().min(10),
   password: z.string().min(6),
-  city: z.string().min(2),
-  targetExam: z.string().min(2),
 });
 
 export async function POST(request) {
@@ -40,8 +38,7 @@ export async function POST(request) {
         role: "STUDENT",
         studentProfile: {
           create: {
-            city: parsed.data.city,
-            targetExam: parsed.data.targetExam,
+            targetExams: [],
           },
         },
       },

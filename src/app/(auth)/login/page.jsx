@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,11 @@ export default function LoginPage() {
 
     if (result?.error) {
       setError("Invalid email or password");
+      return;
+    }
+
+    if (redirectTo) {
+      router.push(redirectTo);
       return;
     }
 
@@ -90,5 +97,27 @@ export default function LoginPage() {
         </Link>
       </div>
     </Card>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <Card className="shadow-md">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted">Sign in to your CoachingHunt account</p>
+      </div>
+      <div className="mt-6 h-48 flex items-center justify-center text-sm text-muted">
+        Loading…
+      </div>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }
