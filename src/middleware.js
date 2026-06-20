@@ -58,6 +58,9 @@ export const config = {
     "/coaching/demo-slots/:path*",
     "/coaching/bookings/:path*",
     "/coaching/offers/:path*",
+    "/coaching/qa/:path*",
+    "/coaching/leads/:path*",
+    "/coaching/analytics/:path*",
     "/admin/:path*",
   ],
 };

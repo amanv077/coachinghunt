@@ -1,17 +1,21 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getCoachingBySlugOrId } from "@/modules/coachings/coachings.service";
+import { getCoachingBySlugOrId, recordProfileView } from "@/modules/coachings/coachings.service";
 import { getSavedCoachingIds } from "@/modules/saved-coachings/saved-coachings.service";
+import { getStudentBookings } from "@/modules/bookings/bookings.service";
 import { CoachingProfileView } from "@/components/marketing/CoachingProfileView";
+import { buildOgMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const coaching = await getCoachingBySlugOrId(slug, false);
   if (!coaching) return { title: "Coaching Not Found" };
-  return {
+  return buildOgMetadata({
     title: coaching.name,
     description: coaching.tagline || coaching.description?.slice(0, 160),
-  };
+    image: coaching.coverImageUrl || coaching.logoUrl,
+    path: `/coaching/${slug}`,
+  });
 }
 
 export default async function CoachingDetailPage({ params }) {
@@ -21,11 +25,27 @@ export default async function CoachingDetailPage({ params }) {
 
   if (!coaching) notFound();
 
+  await recordProfileView(coaching.id);
+
   let isSaved = false;
+  let studentBookings = [];
   if (session?.user?.role === "STUDENT") {
-    const savedIds = await getSavedCoachingIds(session.user.id);
+    const [savedIds, bookings] = await Promise.all([
+      getSavedCoachingIds(session.user.id),
+      getStudentBookings(session.user.id),
+    ]);
     isSaved = savedIds.includes(coaching.id);
+    studentBookings = bookings.filter(
+      (b) => b.coachingId === coaching.id && b.status === "CONFIRMED"
+    );
   }
 
-  return <CoachingProfileView coaching={coaching} session={session} isSaved={isSaved} />;
+  return (
+    <CoachingProfileView
+      coaching={coaching}
+      session={session}
+      isSaved={isSaved}
+      studentBookings={studentBookings}
+    />
+  );
 }

@@ -7,14 +7,17 @@ import { Card } from "@/components/ui/Card";
 import { BookDemoButton } from "@/components/shared/BookDemoButton";
 import { RequestDemoButton } from "@/components/shared/RequestDemoButton";
 
+import { buildOgMetadata } from "@/lib/seo/metadata";
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const course = await getCourseBySlugOrId(slug, false);
   if (!course) return { title: "Course Not Found" };
-  return {
+  return buildOgMetadata({
     title: course.title,
     description: course.description?.slice(0, 160),
-  };
+    path: `/courses/${slug}`,
+  });
 }
 
 export default async function CourseDetailPage({ params }) {

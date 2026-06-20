@@ -44,6 +44,14 @@ function FilterForm({ filters, setFilters, onSubmit, onClear, className }) {
         value={filters.subject}
         onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
       />
+      <Input
+        label="Max fee (₹)"
+        type="number"
+        min="0"
+        value={filters.maxFee}
+        onChange={(e) => setFilters({ ...filters, maxFee: e.target.value })}
+        placeholder="e.g. 50000"
+      />
       <div className="flex gap-2 pt-1">
         <Button type="submit" className="min-h-11 flex-1">
           Apply Filters
@@ -202,6 +210,7 @@ export function SearchFilters({ mobileOnly = false }) {
     city: searchParams.get("city") || "",
     targetExam: searchParams.get("targetExam") || "",
     subject: searchParams.get("subject") || "",
+    maxFee: searchParams.get("maxFee") || "",
   });
 
   function applyFilters(e) {
@@ -211,7 +220,7 @@ export function SearchFilters({ mobileOnly = false }) {
   }
 
   function clearFilters() {
-    setFilters({ q: "", city: "", targetExam: "", subject: "" });
+    setFilters({ q: "", city: "", targetExam: "", subject: "", maxFee: "" });
     router.push("/search");
     setDrawerOpen(false);
   }
@@ -288,6 +297,7 @@ export function ActiveFilterChips() {
     { key: "city", label: searchParams.get("city") },
     { key: "targetExam", label: searchParams.get("targetExam") },
     { key: "subject", label: searchParams.get("subject") },
+    { key: "maxFee", label: searchParams.get("maxFee") ? `Max ₹${searchParams.get("maxFee")}` : null },
   ].filter((c) => c.label);
 
   if (chips.length === 0) return null;

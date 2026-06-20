@@ -7,6 +7,9 @@ const items = [
   { href: "/coaching/courses", label: "Courses" },
   { href: "/coaching/demo-slots", label: "Demo Slots" },
   { href: "/coaching/bookings", label: "Bookings" },
+  { href: "/coaching/leads", label: "Leads" },
+  { href: "/coaching/qa", label: "Q&A" },
+  { href: "/coaching/analytics", label: "Analytics" },
   { href: "/coaching/offers", label: "Offers" },
 ];
 

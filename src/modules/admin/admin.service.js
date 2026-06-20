@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getProfileCompleteness } from "@/modules/coachings/coachings.service";
 
 export async function getAdminAnalytics() {
-  const [totalStudents, totalCoachings, activeCourses, activeDemoSlots, totalBookings, bookingsByCity] =
+  const [totalStudents, totalCoachings, activeCourses, activeDemoSlots, totalBookings, bookingsByCity, leadCounts] =
     await Promise.all([
       prisma.user.count({ where: { role: "STUDENT" } }),
       prisma.coachingProfile.count(),
@@ -14,12 +14,19 @@ export async function getAdminAnalytics() {
         _count: true,
         where: { status: "CONFIRMED" },
       }),
+      prisma.demoRequest.groupBy({
+        by: ["coachingId", "isPaidLead"],
+        _count: true,
+      }),
     ]);
 
-  const coachingIds = bookingsByCity.map((b) => b.coachingId);
+  const coachingIds = [...new Set([
+    ...bookingsByCity.map((b) => b.coachingId),
+    ...leadCounts.map((l) => l.coachingId),
+  ])];
   const coachings = await prisma.coachingProfile.findMany({
     where: { id: { in: coachingIds } },
-    select: { id: true, city: true },
+    select: { id: true, city: true, name: true },
   });
 
   const cityMap = {};
@@ -29,6 +36,28 @@ export async function getAdminAnalytics() {
     cityMap[city] = (cityMap[city] || 0) + b._count;
   });
 
+  const leadMap = {};
+  leadCounts.forEach((row) => {
+    if (!leadMap[row.coachingId]) {
+      leadMap[row.coachingId] = { total: 0, paid: 0 };
+    }
+    leadMap[row.coachingId].total += row._count;
+    if (row.isPaidLead) leadMap[row.coachingId].paid += row._count;
+  });
+
+  const leadsByCoaching = Object.entries(leadMap)
+    .map(([coachingId, counts]) => {
+      const coaching = coachings.find((c) => c.id === coachingId);
+      return {
+        coachingId,
+        name: coaching?.name || "Unknown",
+        city: coaching?.city || "—",
+        totalLeads: counts.total,
+        paidLeads: counts.paid,
+      };
+    })
+    .sort((a, b) => b.totalLeads - a.totalLeads);
+
   return {
     totalStudents,
     totalCoachings,
@@ -36,6 +65,7 @@ export async function getAdminAnalytics() {
     activeDemoSlots,
     totalBookings,
     bookingsByCity: Object.entries(cityMap).map(([city, count]) => ({ city, count })),
+    leadsByCoaching,
   };
 }
 

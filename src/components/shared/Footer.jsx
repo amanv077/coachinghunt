@@ -33,6 +33,9 @@ export function Footer() {
           <h4 className="font-semibold text-secondary">Explore</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             <li><Link href="/search" className="hover:text-secondary">Search Coachings</Link></li>
+            <li><Link href="/exams" className="hover:text-secondary">Browse by Exam</Link></li>
+            <li><Link href="/blog" className="hover:text-secondary">Blog</Link></li>
+            <li><Link href="/success-stories" className="hover:text-secondary">Success Stories</Link></li>
             <li><Link href="/about" className="hover:text-secondary">About Us</Link></li>
             <li><Link href="/contact" className="hover:text-secondary">Contact</Link></li>
           </ul>

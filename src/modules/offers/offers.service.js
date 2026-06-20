@@ -20,6 +20,7 @@ export async function createOffer(coachingId, data) {
       coachingId,
       title: data.title,
       description: data.description,
+      promoCode: data.promoCode || null,
       validFrom: new Date(data.validFrom),
       validTill: new Date(data.validTill),
       status: "ACTIVE",

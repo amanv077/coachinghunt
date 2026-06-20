@@ -6,6 +6,10 @@ const items = [
   { href: "/admin/coachings", label: "Coachings" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/qa", label: "Q&A" },
+  { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/fee-records", label: "Fee Records" },
+  { href: "/admin/audit-logs", label: "Audit Logs" },
 ];
 
 export default function AdminLayout({ children }) {

@@ -15,7 +15,7 @@ export default function CoachingDemoSlotsPage() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    courseId: "", topic: "", teacherName: "", demoDate: "", startTime: "16:00", endTime: "17:00", durationMinutes: 60, capacity: 30, venueName: "", venueAddress: "",
+    courseId: "", topic: "", teacherName: "", demoDate: "", startTime: "16:00", endTime: "17:00", durationMinutes: 60, capacity: 30, venueName: "", venueAddress: "", joiningLink: "",
   });
 
   useEffect(() => {
@@ -69,6 +69,7 @@ export default function CoachingDemoSlotsPage() {
               <Input label="Capacity" type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
             </div>
             <Input label="Venue" value={form.venueName} onChange={(e) => setForm({ ...form, venueName: e.target.value })} />
+            <Input label="Joining link (Meet/Zoom)" type="url" value={form.joiningLink} onChange={(e) => setForm({ ...form, joiningLink: e.target.value })} placeholder="https://meet.google.com/..." />
             <Button type="submit" loading={loading}>Create Slot</Button>
           </form>
         </Card>

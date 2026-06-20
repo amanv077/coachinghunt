@@ -72,6 +72,9 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
           {coaching.verificationStatus === "VERIFIED" && (
             <Badge variant="success">Verified</Badge>
           )}
+          {coaching.isFeatured && (
+            <Badge variant="warning">Featured</Badge>
+          )}
           {demoCount > 0 && (
             <Badge variant="primary" className="bg-white/95 text-secondary shadow-sm">
               {demoCount} demo{demoCount !== 1 ? "s" : ""}

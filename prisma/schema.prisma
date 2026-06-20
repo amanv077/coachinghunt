@@ -83,6 +83,29 @@ enum DemoRequestStatus {
   CANCELLED
 }
 
+enum LeadStatus {
+  NEW
+  CONTACTED
+  ENROLLED
+  DROPPED
+}
+
+enum QAStatus {
+  PENDING
+  ANSWERED
+  HIDDEN
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PostType {
+  BLOG
+  SUCCESS_STORY
+}
+
 model User {
   id              String           @id @default(cuid())
   name            String
@@ -97,6 +120,7 @@ model User {
   studentProfile  StudentProfile?
   coachingProfile CoachingProfile?
   auditLogs       AuditLog[]
+  coachingQuestions CoachingQA[]   @relation("AskedByUser")
 }
 
 model StudentProfile {
@@ -147,6 +171,9 @@ model CoachingProfile {
   facultyProfiles    Json?
   achievementsText   String?
   avgResponseHours   Float?
+  isFeatured         Boolean            @default(false)
+  featuredUntil      DateTime?
+  isPremium          Boolean            @default(false)
   verificationStatus VerificationStatus @default(PENDING)
   listingStatus      ListingStatus      @default(DRAFT)
   avgRating          Float              @default(0)
@@ -162,9 +189,13 @@ model CoachingProfile {
   offers             Offer[]
   demoRequests       DemoRequest[]
   savedBy            SavedCoaching[]
+  qaItems            CoachingQA[]
+  profileViews       ProfileView[]
+  feeRecords         PlatformFeeRecord[]
 
   @@index([city])
   @@index([locality])
+  @@index([isFeatured])
 }
 
 model CoachingBranch {
@@ -236,6 +267,7 @@ model DemoSlot {
   venueName       String?
   venueAddress    String?
   instructions    String?
+  joiningLink     String?
   status          DemoSlotStatus  @default(OPEN)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -251,21 +283,24 @@ model DemoSlot {
 }
 
 model Booking {
-  id          String          @id @default(cuid())
-  studentId   String
-  demoSlotId  String
-  courseId    String
-  coachingId  String
-  bookingCode String          @unique
-  status      BookingStatus   @default(CONFIRMED)
-  emailStatus EmailStatus     @default(PENDING)
-  notes       String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  student     StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  demoSlot    DemoSlot        @relation(fields: [demoSlotId], references: [id], onDelete: Cascade)
-  course      Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  coaching    CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  id                 String          @id @default(cuid())
+  studentId          String
+  demoSlotId         String
+  courseId           String
+  coachingId         String
+  bookingCode        String          @unique
+  status             BookingStatus   @default(CONFIRMED)
+  emailStatus        EmailStatus     @default(PENDING)
+  reminderSent       Boolean         @default(false)
+  reviewInviteSentAt DateTime?
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  student            StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  demoSlot           DemoSlot        @relation(fields: [demoSlotId], references: [id], onDelete: Cascade)
+  course             Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  coaching           CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  feeRecords         PlatformFeeRecord[]
 
   @@unique([studentId, demoSlotId])
   @@index([studentId])
@@ -296,6 +331,7 @@ model Offer {
   coachingId  String
   title       String
   description String?
+  promoCode   String?
   validFrom   DateTime
   validTill   DateTime
   status      OfferStatus     @default(ACTIVE)
@@ -316,20 +352,26 @@ model DemoRequest {
   preferredTime   String?
   message         String?
   status          DemoRequestStatus @default(PENDING)
+  leadStatus      LeadStatus        @default(NEW)
+  coachingNotes   String?
+  isPaidLead      Boolean           @default(false)
   responseNote    String?
   proposedDate    DateTime?
   proposedTime    String?
   resultingSlotId String?           @unique
+  rescheduleOf    String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   student         StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   coaching        CoachingProfile   @relation(fields: [coachingId], references: [id], onDelete: Cascade)
   course          Course?           @relation(fields: [courseId], references: [id], onDelete: SetNull)
   resultingSlot   DemoSlot?         @relation(fields: [resultingSlotId], references: [id], onDelete: SetNull)
+  feeRecords      PlatformFeeRecord[]
 
   @@index([studentId])
   @@index([coachingId])
   @@index([status])
+  @@index([leadStatus])
 }
 
 model SavedCoaching {
@@ -342,6 +384,70 @@ model SavedCoaching {
 
   @@unique([studentId, coachingId])
   @@index([studentId])
+}
+
+model CoachingQA {
+  id            String          @id @default(cuid())
+  coachingId    String
+  askedByUserId String?
+  question      String
+  answer        String?
+  status        QAStatus        @default(PENDING)
+  isPublic      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  answeredAt    DateTime?
+  coaching      CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  askedBy       User?           @relation("AskedByUser", fields: [askedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([coachingId])
+  @@index([status])
+}
+
+model ProfileView {
+  id         String          @id @default(cuid())
+  coachingId String
+  date       DateTime
+  viewCount  Int             @default(1)
+  coaching   CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+
+  @@unique([coachingId, date])
+  @@index([coachingId])
+  @@index([date])
+}
+
+model BlogPost {
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  excerpt       String?
+  content       String
+  coverImageUrl String?
+  tags          String[]
+  postType      PostType   @default(BLOG)
+  status        BlogStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([status])
+  @@index([postType])
+}
+
+model PlatformFeeRecord {
+  id             String          @id @default(cuid())
+  coachingId     String
+  demoRequestId  String?
+  bookingId      String?
+  enrolledByName String?
+  amount         Float           @default(0)
+  status         String          @default("PENDING")
+  createdAt      DateTime        @default(now())
+  coaching       CoachingProfile @relation(fields: [coachingId], references: [id], onDelete: Cascade)
+  demoRequest    DemoRequest?    @relation(fields: [demoRequestId], references: [id], onDelete: SetNull)
+  booking        Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([coachingId])
+  @@index([status])
 }
 
 model AuditLog {
@@ -357,4 +463,5 @@ model AuditLog {
 
   @@index([actorUserId])
   @@index([entityType, entityId])
+  @@index([createdAt])
 }

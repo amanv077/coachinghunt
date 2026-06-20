@@ -30,6 +30,7 @@ export default async function SearchPage({ searchParams }) {
       city: params.city,
       targetExam: params.targetExam,
       subject: params.subject,
+      maxFee: params.maxFee ? Number(params.maxFee) : undefined,
       page,
       sort: params.sort || "newest",
     }),
@@ -38,7 +39,7 @@ export default async function SearchPage({ searchParams }) {
       : Promise.resolve([]),
   ]);
 
-  const hasFilters = !!(params.q || params.city || params.targetExam || params.subject);
+  const hasFilters = !!(params.q || params.city || params.targetExam || params.subject || params.maxFee);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">

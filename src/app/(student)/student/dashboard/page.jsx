@@ -11,6 +11,7 @@ import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { CancelBookingButton } from "@/components/shared/CancelBookingButton";
 import { ProfileNudgeBanner } from "@/components/dashboard/ProfileNudgeBanner";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { PromoCodeChip } from "@/components/shared/PromoCodeChip";
 import {
   buildSearchHref,
   formatDemoDate,
@@ -194,6 +195,7 @@ export default async function StudentDashboardPage() {
                 {offer.description && (
                   <p className="mt-2 text-sm text-muted">{offer.description}</p>
                 )}
+                <PromoCodeChip code={offer.promoCode} />
                 <p className="mt-3 text-xs text-muted">
                   Valid till {new Date(offer.validTill).toLocaleDateString()}
                 </p>

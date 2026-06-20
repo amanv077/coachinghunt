@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DemoRequestCard } from "@/components/coaching/DemoRequestCard";
+import { RequestReviewButton } from "@/components/shared/RequestReviewButton";
 import { cn } from "@/lib/utils/cn";
 
 export default function CoachingBookingsPage() {
@@ -104,6 +105,11 @@ export default function CoachingBookingsPage() {
                     >
                       {b.status}
                     </Badge>
+                    {(b.status === "ATTENDED" || b.status === "CONFIRMED") && (
+                      <div className="mt-2">
+                        <RequestReviewButton bookingId={b.id} sentAt={b.reviewInviteSentAt} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>

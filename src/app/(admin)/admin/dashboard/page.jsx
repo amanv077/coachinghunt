@@ -1,5 +1,6 @@
 import { getAdminAnalytics } from "@/modules/admin/admin.service";
 import { Card } from "@/components/ui/Card";
+import { AdminLeadCounts } from "@/components/admin/AdminLeadCounts";
 
 export default async function AdminDashboardPage() {
   const analytics = await getAdminAnalytics();
@@ -14,6 +15,9 @@ export default async function AdminDashboardPage() {
         <Card><p className="text-sm text-muted">Open Demo Slots</p><p className="text-2xl font-bold">{analytics.activeDemoSlots}</p></Card>
         <Card><p className="text-sm text-muted">Total Bookings</p><p className="text-2xl font-bold">{analytics.totalBookings}</p></Card>
       </div>
+      {analytics.leadsByCoaching?.length > 0 && (
+        <AdminLeadCounts leads={analytics.leadsByCoaching} />
+      )}
       {analytics.bookingsByCity.length > 0 && (
         <Card>
           <h2 className="font-semibold">Bookings by City</h2>

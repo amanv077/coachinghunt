@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { CancelBookingButton } from "@/components/shared/CancelBookingButton";
+import { RescheduleBookingButton } from "@/components/shared/RescheduleBookingButton";
 import { StudentBookingsTabs } from "@/components/student/StudentBookingsTabs";
 import { StudentDemoRequestCard } from "@/components/student/StudentDemoRequestCard";
 import {
@@ -38,7 +39,10 @@ function BookingCard({ booking, showCancel = false }) {
         </Badge>
         <Badge variant="primary">{booking.bookingCode}</Badge>
         {showCancel && booking.status === "CONFIRMED" && (
-          <CancelBookingButton bookingId={booking.id} />
+          <>
+            <RescheduleBookingButton bookingId={booking.id} />
+            <CancelBookingButton bookingId={booking.id} />
+          </>
         )}
       </div>
     </Card>

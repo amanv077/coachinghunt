@@ -9,6 +9,7 @@ import { RequestDemoButton } from "@/components/shared/RequestDemoButton";
 import { ReviewForm } from "@/components/shared/ReviewForm";
 import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
+import { QASection } from "@/components/shared/QASection";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 
@@ -16,6 +17,7 @@ const sections = [
   { id: "overview", label: "Overview" },
   { id: "courses", label: "Courses" },
   { id: "demos", label: "Demos" },
+  { id: "qa", label: "Q&A" },
   { id: "reviews", label: "Reviews" },
 ];
 
@@ -146,7 +148,7 @@ function GalleryStrip({ images }) {
   );
 }
 
-export function CoachingProfileView({ coaching, session, isSaved = false }) {
+export function CoachingProfileView({ coaching, session, isSaved = false, studentBookings = [] }) {
   const [activeSection, setActiveSection] = useState("overview");
   const isLoggedIn = !!session?.user;
   const isStudent = session?.user?.role === "STUDENT";
@@ -154,6 +156,7 @@ export function CoachingProfileView({ coaching, session, isSaved = false }) {
   const openDemos = coaching.demoSlots?.filter((s) => s.status === "OPEN") ?? [];
   const courseCount = coaching.courses?.length ?? 0;
   const reviewCount = coaching.reviewCount ?? coaching.reviews?.length ?? 0;
+  const bookedSlotIds = new Set(studentBookings.map((b) => b.demoSlotId));
   const facultyProfiles = Array.isArray(coaching.facultyProfiles) ? coaching.facultyProfiles : [];
   const videoEmbedUrl = getVideoEmbedUrl(coaching.videoUrl);
 
@@ -214,6 +217,9 @@ export function CoachingProfileView({ coaching, session, isSaved = false }) {
                       </h1>
                       {coaching.verificationStatus === "VERIFIED" && (
                         <Badge variant="success">Verified</Badge>
+                      )}
+                      {coaching.isFeatured && (
+                        <Badge variant="warning">Featured</Badge>
                       )}
                     </div>
                     {isStudent && (
@@ -607,7 +613,12 @@ export function CoachingProfileView({ coaching, session, isSaved = false }) {
                         )}
                       </div>
                       {isLoggedIn && (
-                        <div className="flex items-center px-4 pb-4 sm:px-4 sm:pb-0">
+                        <div className="mt-3 flex shrink-0 items-center px-4 pb-4 sm:px-4 sm:pb-0 sm:flex-col sm:items-end sm:gap-2 lg:flex-row lg:items-center">
+                          {slot.joiningLink && bookedSlotIds.has(slot.id) && (
+                            <a href={slot.joiningLink} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                              <Button size="sm" variant="secondary" className="min-h-9 w-full">Join demo</Button>
+                            </a>
+                          )}
                           <BookDemoButton demoSlotId={slot.id} disabled={slot.status !== "OPEN"} />
                         </div>
                       )}
@@ -651,6 +662,12 @@ export function CoachingProfileView({ coaching, session, isSaved = false }) {
                   )}
                 </Card>
               )}
+            </section>
+
+            {/* Q&A */}
+            <section className="space-y-4">
+              <SectionHeading id="qa" title="Questions & answers" subtitle="Ask the coaching directly" />
+              <QASection coachingId={coaching.id} isLoggedIn={isLoggedIn} isStudent={isStudent} />
             </section>
 
             {/* Reviews */}

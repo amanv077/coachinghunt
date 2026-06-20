@@ -7,6 +7,9 @@ export const COACHING_DASHBOARD_ROUTES = [
   "/coaching/demo-slots",
   "/coaching/bookings",
   "/coaching/offers",
+  "/coaching/qa",
+  "/coaching/leads",
+  "/coaching/analytics",
 ];
 
 export function isCoachingDashboardRoute(pathname) {

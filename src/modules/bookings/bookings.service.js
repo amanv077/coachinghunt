@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { generateBookingCode } from "@/lib/utils/helpers";
 import { sendBookingConfirmationEmail } from "@/modules/notifications/email.service";
+import { writeAuditLog } from "@/lib/audit/log";
 
 export async function createBooking(studentUserId, demoSlotId) {
   const student = await prisma.studentProfile.findUnique({ where: { userId: studentUserId } });
@@ -68,6 +69,18 @@ export async function createBooking(studentUserId, demoSlotId) {
     booking.emailStatus = "FAILED";
   }
 
+  const studentUser = await prisma.user.findUnique({ where: { id: studentUserId } });
+  if (studentUser) {
+    await writeAuditLog({
+      actorUserId: studentUserId,
+      actorRole: studentUser.role,
+      action: "BOOKING_CREATED",
+      entityType: "Booking",
+      entityId: booking.id,
+      metaJson: { bookingCode: booking.bookingCode },
+    });
+  }
+
   return booking;
 }
 
@@ -86,10 +99,23 @@ export async function cancelBooking(bookingId, studentUserId) {
         status: "OPEN",
       },
     });
-    return tx.booking.update({
+    const updated = await tx.booking.update({
       where: { id: bookingId },
       data: { status: "CANCELLED" },
     });
+
+    const user = await tx.user.findUnique({ where: { id: studentUserId } });
+    if (user) {
+      await writeAuditLog({
+        actorUserId: studentUserId,
+        actorRole: user.role,
+        action: "BOOKING_CANCELLED",
+        entityType: "Booking",
+        entityId: bookingId,
+      });
+    }
+
+    return updated;
   });
 }
 

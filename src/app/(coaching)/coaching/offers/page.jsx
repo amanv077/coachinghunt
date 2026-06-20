@@ -12,7 +12,7 @@ export default function CoachingOffersPage() {
   const [offers, setOffers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", validFrom: "", validTill: "" });
+  const [form, setForm] = useState({ title: "", description: "", promoCode: "", validFrom: "", validTill: "" });
 
   useEffect(() => {
     fetch("/api/coachings/me").then((r) => r.json()).then((d) => {
@@ -51,8 +51,9 @@ export default function CoachingOffersPage() {
         <Card className="mt-6">
           <form onSubmit={handleCreate} className="space-y-4">
             <Input label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-            <Textarea label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            <div className="grid gap-4 sm:grid-cols-2">
+          <Textarea label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <Input label="Promo code (optional)" value={form.promoCode} onChange={(e) => setForm({ ...form, promoCode: e.target.value })} placeholder="SAVE500" />
+          <div className="grid gap-4 sm:grid-cols-2">
               <Input label="Valid From" type="date" value={form.validFrom} onChange={(e) => setForm({ ...form, validFrom: e.target.value })} required />
               <Input label="Valid Till" type="date" value={form.validTill} onChange={(e) => setForm({ ...form, validTill: e.target.value })} required />
             </div>
@@ -65,6 +66,11 @@ export default function CoachingOffersPage() {
           <Card key={o.id}>
             <p className="font-medium">{o.title}</p>
             {o.description && <p className="text-sm text-muted">{o.description}</p>}
+            {o.promoCode && (
+              <p className="mt-2 inline-block rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold text-secondary">
+                Code: {o.promoCode}
+              </p>
+            )}
           </Card>
         ))}
       </div>

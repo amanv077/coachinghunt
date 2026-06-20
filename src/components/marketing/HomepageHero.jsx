@@ -63,7 +63,7 @@ export function HomepageHero({ stats: platformStats }) {
   }
 
   function quickSearch(exam) {
-    router.push(`/search?targetExam=${encodeURIComponent(exam)}`);
+    router.push(`/exams/${encodeURIComponent(exam.toLowerCase())}`);
   }
 
   return (
