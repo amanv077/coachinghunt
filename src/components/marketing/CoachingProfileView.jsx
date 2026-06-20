@@ -11,6 +11,11 @@ import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { QASection } from "@/components/shared/QASection";
 import { Button } from "@/components/ui/Button";
+import {
+  CoachingCoverImage,
+  CoachingGalleryImage,
+  CoachingLogo,
+} from "@/components/shared/CoachingMedia";
 import { cn } from "@/lib/utils/cn";
 
 const sections = [
@@ -36,15 +41,6 @@ function MapPinIcon({ className }) {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
-}
-
-function getInitials(name) {
-  return name
-    ?.split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 function formatDemoDate(date) {
@@ -129,8 +125,7 @@ function GalleryStrip({ images }) {
             onClick={() => setActive(url)}
             className="h-24 w-32 shrink-0 snap-start overflow-hidden rounded-xl border border-border"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            <CoachingGalleryImage src={url} />
           </button>
         ))}
       </div>
@@ -140,8 +135,10 @@ function GalleryStrip({ images }) {
           onClick={() => setActive(null)}
           role="presentation"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={active} alt="" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
+          <CoachingGalleryImage
+            src={active}
+            className="max-h-[85vh] max-w-full rounded-xl object-contain"
+          />
         </div>
       )}
     </>
@@ -169,16 +166,7 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
     <div className="pb-24 md:pb-12">
       {/* Cover */}
       <div className="relative h-40 sm:h-52">
-        {coaching.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coaching.coverImageUrl}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary-hover to-primary-dark" />
-        )}
+        <CoachingCoverImage src={coaching.coverImageUrl} variant="hero" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         <div className="absolute left-0 right-0 top-0">
           <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
@@ -202,14 +190,12 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
             <div className="p-5 sm:p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-secondary text-xl font-bold text-white shadow-md ring-4 ring-white sm:h-20 sm:w-20 sm:text-2xl">
-                    {coaching.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
-                    ) : (
-                      getInitials(coaching.name)
-                    )}
-                  </div>
+                  <CoachingLogo
+                    src={coaching.logoUrl}
+                    name={coaching.name}
+                    size="lg"
+                    className="shadow-md ring-4 ring-white"
+                  />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h1 className="text-xl font-bold text-foreground sm:text-2xl lg:text-3xl">

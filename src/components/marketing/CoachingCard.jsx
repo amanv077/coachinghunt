@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
+import { CoachingCoverImage, CoachingLogo } from "@/components/shared/CoachingMedia";
 import { cn } from "@/lib/utils/cn";
 
 function StarIcon({ className }) {
@@ -31,37 +32,21 @@ function BookIcon({ className }) {
 }
 
 export function CoachingCard({ coaching, onPreview, isSaved = false, showActions = false }) {
-  const initials = coaching.name
-    ?.split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   const demoCount = coaching.openDemoCount ?? coaching._count?.demoSlots ?? 0;
   const courseCount = coaching.courseCount ?? coaching._count?.courses ?? 0;
 
   const cardContent = (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-secondary/30 hover:shadow-lg">
-      <div className="relative h-28 bg-gradient-to-br from-secondary-light to-secondary-muted/40">
-        {coaching.coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coaching.coverImageUrl}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        )}
+      <div className="relative h-28">
+        <CoachingCoverImage src={coaching.coverImageUrl} variant="card" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(44,76,156,0.15),transparent_60%)]" />
         <div className="absolute bottom-0 left-5 translate-y-1/2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary text-lg font-bold text-white shadow-md ring-4 ring-white">
-            {coaching.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={coaching.logoUrl} alt="" className="h-full w-full rounded-xl object-cover" />
-            ) : (
-              initials
-            )}
-          </div>
+          <CoachingLogo
+            src={coaching.logoUrl}
+            name={coaching.name}
+            size="sm"
+            className="shadow-md ring-4 ring-white"
+          />
         </div>
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
           {showActions && (

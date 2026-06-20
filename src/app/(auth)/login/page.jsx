@@ -1,52 +1,72 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { getDashboardPath } from "@/lib/auth/dashboard";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { update } = useSession();
+  const { addToast } = useToast();
   const redirectTo = searchParams.get("redirect");
+  const registered = searchParams.get("registered");
+  const registeredToastShown = useRef(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!registered || registeredToastShown.current) return;
+    registeredToastShown.current = true;
+
+    if (registered === "student") {
+      addToast("Account created! Sign in to continue.", "success");
+      return;
+    }
+
+    if (registered === "coaching") {
+      addToast("Coaching account created! Sign in to finish setup.", "success");
+    }
+  }, [registered, addToast]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: form.email,
-      password: form.password,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: form.email,
+        password: form.password,
+      });
 
-    setLoading(false);
+      if (result?.error) {
+        setError("Invalid email or password");
+        return;
+      }
 
-    if (result?.error) {
-      setError("Invalid email or password");
-      return;
+      if (!result?.ok) {
+        setError("Could not sign in. Please try again.");
+        return;
+      }
+
+      const session = await update();
+      const destination = redirectTo || getDashboardPath(session?.user?.role) || "/";
+
+      addToast("Welcome back! You're signed in.", "success");
+      router.refresh();
+      router.push(destination);
+    } finally {
+      setLoading(false);
     }
-
-    if (redirectTo) {
-      router.push(redirectTo);
-      return;
-    }
-
-    const res = await fetch("/api/auth/session");
-    const session = await res.json();
-    const role = session?.user?.role;
-
-    if (role === "STUDENT") router.push("/student/dashboard");
-    else if (role === "COACHING") router.push("/coaching/dashboard");
-    else if (role === "ADMIN") router.push("/admin/dashboard");
-    else router.push("/");
   }
 
   return (
