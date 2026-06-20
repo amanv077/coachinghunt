@@ -2,10 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isNavLinkActive } from "@/components/shared/nav-config";
 import { cn } from "@/lib/utils/cn";
 
 function NavLink({ item, pathname, variant }) {
-  const isActive = pathname === item.href;
+  const isActive = isNavLinkActive(pathname, item.href.split("?")[0]);
+
+  const content = (
+    <>
+      {item.icon && <span className="shrink-0">{item.icon}</span>}
+      <span className={variant === "desktop" ? "truncate" : undefined}>{item.label}</span>
+      {item.badge && (
+        <span className={cn(
+          "rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-white",
+          variant === "desktop" ? "ml-auto" : "ml-1"
+        )}>
+          {item.badge}
+        </span>
+      )}
+    </>
+  );
 
   if (variant === "mobile") {
     return (
@@ -15,11 +31,11 @@ function NavLink({ item, pathname, variant }) {
           "inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors",
           isActive
             ? "border-secondary text-secondary"
-            : "border-transparent text-muted hover:text-foreground"
+            : "border-transparent text-muted hover:text-foreground",
+          item.highlight && !isActive && "text-secondary"
         )}
       >
-        {item.icon && <span className="shrink-0">{item.icon}</span>}
-        {item.label}
+        {content}
       </Link>
     );
   }
@@ -31,25 +47,31 @@ function NavLink({ item, pathname, variant }) {
         "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
         isActive
           ? "bg-white text-secondary shadow-sm ring-1 ring-border"
-          : "text-muted hover:bg-white/70 hover:text-foreground"
+          : "text-muted hover:bg-white/70 hover:text-foreground",
+        item.highlight && !isActive && "bg-secondary-light/60 text-secondary ring-1 ring-secondary/20"
       )}
     >
       {item.icon && (
         <span
           className={cn(
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-            isActive ? "bg-secondary-light text-secondary" : "bg-white/80 text-muted"
+            isActive || item.highlight ? "bg-secondary text-white" : "bg-white/80 text-muted"
           )}
         >
           {item.icon}
         </span>
       )}
       <span className="truncate">{item.label}</span>
+      {item.badge && (
+        <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-white">
+          {item.badge}
+        </span>
+      )}
     </Link>
   );
 }
 
-export function DashboardSidebar({ items, title }) {
+export function DashboardSidebar({ items, title, showMobileTabs = true }) {
   const pathname = usePathname();
 
   return (
@@ -70,13 +92,15 @@ export function DashboardSidebar({ items, title }) {
         </div>
       </aside>
 
-      <nav className="border-b border-border bg-white md:hidden">
-        <div className="flex gap-0 overflow-x-auto px-2 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
-          {items.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} variant="mobile" />
-          ))}
-        </div>
-      </nav>
+      {showMobileTabs && (
+        <nav className="border-b border-border bg-white md:hidden" aria-label="Dashboard navigation">
+          <div className="flex gap-0 overflow-x-auto px-2 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
+            {items.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} variant="mobile" />
+            ))}
+          </div>
+        </nav>
+      )}
     </>
   );
 }

@@ -223,9 +223,9 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
                       )}
                     </div>
                     {isStudent && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                         <SaveCoachingButton coachingId={coaching.id} initialSaved={isSaved} />
-                        <CompareCoachingButton coaching={coaching} />
+                        <CompareCoachingButton coaching={coaching} className="sm:max-w-xs" />
                       </div>
                     )}
                     <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted">

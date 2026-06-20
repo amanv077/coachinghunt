@@ -79,9 +79,18 @@ export default async function StudentDashboardPage() {
               Find Coachings
             </Button>
           </Link>
-          <Link href="/student/bookings" className="w-full sm:w-auto">
-            <Button variant="secondary" size="md" className="w-full min-h-11 sm:min-w-[148px]">
-              My Bookings
+          <Link href="/student/saved" className="w-full sm:w-auto">
+            <Button variant="secondary" size="md" className="w-full min-h-11 sm:min-w-[120px]">
+              Saved
+            </Button>
+          </Link>
+          <Link href="/compare" className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              size="md"
+              className="w-full min-h-11 border-2 border-secondary bg-secondary-light text-secondary sm:min-w-[120px]"
+            >
+              Compare
             </Button>
           </Link>
         </div>
@@ -174,15 +183,30 @@ export default async function StudentDashboardPage() {
 
       <section>
         <SectionHeader title={discoverTitle} href={searchHref} linkLabel="Browse all" />
-        <CoachingCardGrid coachings={topCoachings} />
+        <CoachingCardGrid
+          coachings={topCoachings}
+          savedIds={savedCoachings.map((c) => c.id)}
+          showActions
+        />
       </section>
 
-      {savedCoachings.length > 0 && (
-        <section>
-          <SectionHeader title="Saved Coachings" href="/search" linkLabel="Find more" />
-          <CoachingCardGrid coachings={savedCoachings} savedIds={savedCoachings.map((c) => c.id)} showActions />
-        </section>
-      )}
+      <section>
+        <SectionHeader title="Saved Coachings" href="/student/saved" linkLabel="View all" />
+        {savedCoachings.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-surface-muted/50 px-6 py-8 text-center">
+            <p className="text-sm text-muted">Save coachings with the heart icon while browsing search results.</p>
+            <Link href="/search" className="mt-4 inline-block">
+              <Button variant="secondary" className="min-h-11">Browse coachings</Button>
+            </Link>
+          </div>
+        ) : (
+          <CoachingCardGrid
+            coachings={savedCoachings.slice(0, 4)}
+            savedIds={savedCoachings.map((c) => c.id)}
+            showActions
+          />
+        )}
+      </section>
 
       {offers.length > 0 && (
         <section>

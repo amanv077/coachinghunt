@@ -1,50 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/shared/Logo";
+import { NavbarSearch } from "@/components/shared/NavbarSearch";
+import {
+  getPublicNavLinks,
+  getQuickAction,
+  isNavLinkActive,
+  variantMeta,
+} from "@/components/shared/nav-config";
 import { getDashboardPath, getProfilePath } from "@/lib/auth/dashboard";
 import { cn } from "@/lib/utils/cn";
 
-const guestLinks = [
-  { href: "/search", label: "Find Coachings" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
-
-const studentLinks = [
-  { href: "/search", label: "Find Coachings" },
-  { href: "/student/bookings", label: "My Bookings" },
-  { href: "/student/offers", label: "My Offers" },
-];
-
-const coachingLinks = [
-  { href: "/coaching/dashboard", label: "Dashboard" },
-  { href: "/coaching/courses", label: "Courses" },
-  { href: "/coaching/demo-slots", label: "Demo Slots" },
-  { href: "/coaching/bookings", label: "Bookings" },
-];
-
-const adminLinks = [
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/coachings", label: "Coachings" },
-  { href: "/admin/bookings", label: "Bookings" },
-];
-
-function getNavLinks(role) {
-  if (role === "STUDENT") return studentLinks;
-  if (role === "COACHING") return coachingLinks;
-  if (role === "ADMIN") return adminLinks;
-  return guestLinks;
-}
-
-function isLinkActive(pathname, href) {
-  if (href === "/coaching/dashboard" || href === "/admin/dashboard") {
-    return pathname === href;
-  }
-  return pathname === href || pathname.startsWith(`${href}/`);
+function SearchIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
 }
 
 function ProfileIcon({ className }) {
@@ -71,15 +49,76 @@ function SignOutIcon({ className }) {
   );
 }
 
-function ProfileMenu({ session }) {
+function MenuIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function NavLink({ href, label, pathname, icon, onNavigate }) {
+  const active = isNavLinkActive(pathname, href);
+
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className={cn(
+        "flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors",
+        active
+          ? "bg-secondary-light text-secondary"
+          : "text-foreground hover:bg-surface-muted hover:text-secondary"
+      )}
+    >
+      {icon && (
+        <span
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+            active ? "bg-white text-secondary shadow-sm" : "bg-surface-muted text-muted"
+          )}
+        >
+          {icon}
+        </span>
+      )}
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+function RoleBadge({ label, show }) {
+  if (!label || !show) return null;
+
+  return (
+    <span className="hidden rounded-full bg-secondary-light px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary sm:inline-flex">
+      {label}
+    </span>
+  );
+}
+
+function ProfileMenu({ session, onNavigate }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const role = session.user?.role;
   const profilePath = getProfilePath(role);
-  const dashboardPath = role === "ADMIN" ? getDashboardPath(role) : null;
+  const dashboardPath = getDashboardPath(role);
   const name = session.user?.name ?? "Account";
   const email = session.user?.email;
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   useEffect(() => {
     setOpen(false);
@@ -106,28 +145,38 @@ function ProfileMenu({ session }) {
     };
   }, [open]);
 
+  function close() {
+    setOpen(false);
+    onNavigate?.();
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       <button
         type="button"
         className={cn(
-          "flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-secondary-light text-secondary transition",
-          "hover:bg-secondary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40",
-          open && "bg-secondary/10 ring-2 ring-secondary/20"
+          "flex min-h-11 items-center gap-2 rounded-full border border-border bg-white pl-1 pr-2.5 text-secondary transition",
+          "hover:border-secondary/30 hover:bg-secondary-light/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40",
+          open && "border-secondary/30 bg-secondary-light/50 ring-2 ring-secondary/20"
         )}
         aria-label="Account menu"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
       >
-        <ProfileIcon className="h-5 w-5" />
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white">
+          {initials || <ProfileIcon className="h-4 w-4" />}
+        </span>
+        <span className="hidden max-w-[120px] truncate text-sm font-medium text-foreground lg:block">
+          {name}
+        </span>
       </button>
 
       {open && (
         <div
           role="menu"
           aria-label="Account options"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 overflow-hidden rounded-xl border border-border bg-white py-1 shadow-lg"
+          className="absolute right-0 top-[calc(100%+0.5rem)] z-[120] w-60 overflow-hidden rounded-2xl border border-border bg-white py-1 shadow-lg"
         >
           <div className="border-b border-border px-4 py-3">
             <p className="truncate text-sm font-semibold text-foreground">{name}</p>
@@ -139,7 +188,7 @@ function ProfileMenu({ session }) {
               href={dashboardPath}
               role="menuitem"
               className="flex min-h-11 items-center gap-3 px-4 text-sm font-medium text-foreground transition hover:bg-secondary-light hover:text-secondary"
-              onClick={() => setOpen(false)}
+              onClick={close}
             >
               Dashboard
             </Link>
@@ -150,7 +199,7 @@ function ProfileMenu({ session }) {
               href={profilePath}
               role="menuitem"
               className="flex min-h-11 items-center gap-3 px-4 text-sm font-medium text-foreground transition hover:bg-secondary-light hover:text-secondary"
-              onClick={() => setOpen(false)}
+              onClick={close}
             >
               <ProfileIcon className="h-5 w-5 shrink-0" />
               Profile
@@ -162,7 +211,7 @@ function ProfileMenu({ session }) {
             role="menuitem"
             className="flex min-h-11 w-full items-center gap-3 px-4 text-left text-sm font-medium text-foreground transition hover:bg-secondary-light hover:text-secondary"
             onClick={() => {
-              setOpen(false);
+              close();
               signOut({ callbackUrl: "/" });
             }}
           >
@@ -175,126 +224,264 @@ function ProfileMenu({ session }) {
   );
 }
 
-export function Navbar() {
+function MobileDrawer({ open, onClose, title, children }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <>
+      <div
+        className="fixed inset-0 z-[100] bg-black/45 backdrop-blur-[1px] md:hidden"
+        aria-hidden
+        onClick={onClose}
+      />
+      <div
+        className="fixed inset-y-0 right-0 z-[101] flex w-[min(100vw,20rem)] flex-col bg-white shadow-2xl md:hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <button
+            type="button"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted transition hover:bg-surface-muted hover:text-foreground"
+            aria-label="Close menu"
+            onClick={onClose}
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">{children}</div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+export function Navbar({ variant = "public", sidebarItems = [] }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const role = session?.user?.role;
-  const navLinks = getNavLinks(role);
-  const homeHref = getDashboardPath(role) ?? "/";
+  const isDashboard = variant !== "public";
+  const meta = variantMeta[variant] ?? variantMeta.public;
+  const homeHref = isDashboard ? meta.homePath : getDashboardPath(role) ?? "/";
+  const navLinks = isDashboard ? sidebarItems : getPublicNavLinks(role);
+  const quickAction = getQuickAction(isDashboard ? variant : "public", role);
+  const showDesktopNav = !isDashboard;
+  const showMobileMenuButton = !isDashboard || sidebarItems.length > 0;
+  const isSearchPage = pathname === "/search" || pathname.startsWith("/search/");
+  const showSearchBar = !isSearchPage && (variant === "student" || !isDashboard);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
     };
   }, [menuOpen]);
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-secondary/10 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
-        <Link href={homeHref} className="shrink-0 text-xl font-bold text-secondary">
-          CoachingHunt
-        </Link>
+  function closeMenu() {
+    setMenuOpen(false);
+  }
 
-        <nav className="hidden items-center justify-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
+  return (
+    <>
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-white/95 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
+          <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+            <Logo href={homeHref} size="md" />
+            <RoleBadge label={meta.label} show={meta.showBadge} />
+          </div>
+
+          {showSearchBar && (
+            <div
               className={cn(
-                "rounded-lg px-3.5 py-2 text-sm font-medium transition hover:bg-secondary-light hover:text-secondary",
-                isLinkActive(pathname, link.href) ? "bg-secondary-light text-secondary" : "text-muted"
+                "min-w-0 flex-1 px-2 md:max-w-md lg:max-w-lg",
+                variant === "student" ? "block" : "hidden md:block"
               )}
             >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-1">
-          {session ? (
-            <ProfileMenu session={session} />
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm">Sign Up</Button>
-              </Link>
+              <Suspense fallback={<div className="h-11 rounded-xl bg-surface-muted" />}>
+                <NavbarSearch />
+              </Suspense>
             </div>
           )}
 
-          <button
-            type="button"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-secondary md:hidden"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? (
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <>
-          <div
-            className="fixed inset-0 top-[57px] z-40 bg-black/30 md:hidden"
-            aria-hidden
-            onClick={() => setMenuOpen(false)}
-          />
-          <div className="absolute left-0 right-0 top-full z-50 border-b border-secondary/10 bg-white shadow-lg md:hidden">
-            <nav className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-              <div className="space-y-1">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "block min-h-11 rounded-lg px-4 py-3 text-base font-medium transition",
-                      isLinkActive(pathname, link.href)
-                        ? "bg-secondary-light text-secondary"
-                        : "text-foreground hover:bg-secondary-light hover:text-secondary"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-
-              {!session && (
-                <div className="mt-4 space-y-2 border-t border-border pt-4">
-                  <Link href="/login" className="block">
-                    <Button variant="ghost" className="min-h-11 w-full">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/signup" className="block">
-                    <Button className="min-h-11 w-full">Sign Up</Button>
-                  </Link>
-                </div>
-              )}
+          {showDesktopNav && (
+            <nav className="hidden shrink-0 items-center gap-0.5 lg:flex" aria-label="Main navigation">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isNavLinkActive(pathname, link.href)
+                      ? "bg-secondary-light text-secondary"
+                      : "text-muted hover:bg-surface-muted hover:text-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
+          )}
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+            {role === "STUDENT" && !isDashboard && (
+              <Link
+                href="/student/dashboard"
+                className={cn(
+                  "hidden min-h-11 items-center rounded-lg px-3 text-sm font-medium transition md:inline-flex lg:hidden",
+                  isNavLinkActive(pathname, "/student/dashboard")
+                    ? "bg-secondary-light text-secondary"
+                    : "text-muted hover:bg-surface-muted hover:text-foreground"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
+
+            {quickAction && (
+              <Link href={quickAction.href} className="hidden sm:block">
+                <Button size="sm" variant={isDashboard ? "primary" : "secondary"}>
+                  {quickAction.label}
+                </Button>
+              </Link>
+            )}
+
+            {session ? (
+              <ProfileMenu session={session} />
+            ) : (
+              <div className="hidden items-center gap-1.5 sm:flex">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </div>
+            )}
+
+            {showMobileMenuButton && (
+              <button
+                type="button"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-secondary transition hover:bg-surface-muted md:hidden"
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
+              </button>
+            )}
           </div>
-        </>
-      )}
-    </header>
+        </div>
+      </header>
+
+      <MobileDrawer
+        open={menuOpen}
+        onClose={closeMenu}
+        title={isDashboard ? `${meta.label ?? "Dashboard"} menu` : "Menu"}
+      >
+        {showSearchBar && !isDashboard && (
+          <div className="mb-4">
+            <Suspense fallback={<div className="h-11 rounded-xl bg-surface-muted" />}>
+              <NavbarSearch onSearch={closeMenu} />
+            </Suspense>
+          </div>
+        )}
+
+        <nav className="space-y-1" aria-label="Mobile navigation">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.href}
+              href={link.href}
+              label={link.label}
+              icon={link.icon}
+              pathname={pathname}
+              onNavigate={closeMenu}
+            />
+          ))}
+        </nav>
+
+        {quickAction && (
+          <div className="mt-4 border-t border-border pt-4">
+            <Link href={quickAction.href} onClick={closeMenu} className="block">
+              <Button className="min-h-11 w-full" variant={isDashboard ? "primary" : "secondary"}>
+                {quickAction.label}
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {!session && !isDashboard && (
+          <div className="mt-4 space-y-2 border-t border-border pt-4">
+            <Link href="/login" onClick={closeMenu} className="block">
+              <Button variant="ghost" className="min-h-11 w-full">
+                Login
+              </Button>
+            </Link>
+            <Link href="/signup" onClick={closeMenu} className="block">
+              <Button className="min-h-11 w-full">Sign Up free</Button>
+            </Link>
+          </div>
+        )}
+
+        {isDashboard && (
+          <div className="mt-4 space-y-2 border-t border-border pt-4">
+            <Link
+              href="/search"
+              onClick={closeMenu}
+              className="flex min-h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-medium text-muted transition hover:bg-surface-muted hover:text-secondary"
+            >
+              <SearchIcon className="h-5 w-5" />
+              Browse coachings
+            </Link>
+            {role === "STUDENT" && (
+              <>
+                <Link
+                  href="/student/saved"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-medium text-muted transition hover:bg-surface-muted hover:text-secondary"
+                >
+                  Saved coachings
+                </Link>
+                <Link
+                  href="/compare"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-3 rounded-xl border border-secondary/20 bg-secondary-light px-3.5 text-sm font-semibold text-secondary transition hover:bg-secondary hover:text-white"
+                >
+                  Compare coachings
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+      </MobileDrawer>
+    </>
   );
 }

@@ -105,7 +105,11 @@ export default async function SearchPage({ searchParams }) {
             </div>
           ) : (
             <>
-              <CoachingCardGrid coachings={result.items} savedIds={savedIds} showActions />
+              <CoachingCardGrid
+                coachings={result.items}
+                savedIds={savedIds}
+                showActions={session?.user?.role === "STUDENT"}
+              />
               <Suspense fallback={null}>
                 <SearchPagination page={result.page} totalPages={result.totalPages} />
               </Suspense>

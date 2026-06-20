@@ -19,7 +19,10 @@ export default async function ComparePage({ searchParams }) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6">
         <h1 className="text-2xl font-bold">Compare coachings</h1>
-        <p className="mt-3 text-muted">Select at least 2 coachings from search to compare side by side.</p>
+        <p className="mt-3 text-muted">
+          Add at least 2 coachings using the highlighted &ldquo;Add to compare&rdquo; button on search or coaching cards.
+        </p>
+        <p className="mt-2 text-sm text-secondary font-medium">Pick up to 3 coachings, then compare side by side.</p>
         <Link href="/search" className="mt-6 inline-block">
           <Button className="min-h-11">Find coachings</Button>
         </Link>

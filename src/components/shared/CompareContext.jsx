@@ -1,11 +1,32 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+
+const STORAGE_KEY = "coachinghunt_compare";
 
 const CompareContext = createContext(null);
 
 export function CompareProvider({ children }) {
   const [compareList, setCompareList] = useState([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCompareList(parsed.slice(0, 3));
+      }
+    } catch {
+      // ignore invalid storage
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(compareList));
+  }, [compareList, hydrated]);
 
   const value = useMemo(() => ({
     compareList,

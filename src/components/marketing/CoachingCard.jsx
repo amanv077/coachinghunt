@@ -157,11 +157,9 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
           </span>
         </div>
 
-        {showActions && (
-          <div className="mt-3">
-            <CompareCoachingButton coaching={coaching} className="w-full" />
-          </div>
-        )}
+        <div className="mt-3">
+          <CompareCoachingButton coaching={coaching} />
+        </div>
 
         <p className="mt-3 text-xs font-medium text-secondary md:opacity-0 md:transition md:group-hover:opacity-100">
           Tap for details →
