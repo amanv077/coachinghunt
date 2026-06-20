@@ -94,11 +94,16 @@ function NavLink({ href, label, pathname, icon, onNavigate }) {
   );
 }
 
-function RoleBadge({ label, show }) {
+function RoleBadge({ label, show, className }) {
   if (!label || !show) return null;
 
   return (
-    <span className="hidden rounded-full bg-secondary-light px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary sm:inline-flex">
+    <span
+      className={cn(
+        "hidden rounded-full bg-secondary-light px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary sm:inline-flex",
+        className
+      )}
+    >
       {label}
     </span>
   );
@@ -275,7 +280,7 @@ function MobileDrawer({ open, onClose, title, children }) {
   );
 }
 
-export function Navbar({ variant = "public", sidebarItems = [] }) {
+export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDesktop = false }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -313,8 +318,16 @@ export function Navbar({ variant = "public", sidebarItems = [] }) {
       <header className="sticky top-0 z-50 border-b border-border/80 bg-white/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6">
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-            <Logo href={homeHref} size="md" />
-            <RoleBadge label={meta.label} show={meta.showBadge} />
+            <Logo
+              href={homeHref}
+              size="md"
+              className={cn(hideLogoOnDesktop && "md:hidden")}
+            />
+            <RoleBadge
+              label={meta.label}
+              show={meta.showBadge}
+              className={cn(hideLogoOnDesktop && "md:inline-flex")}
+            />
           </div>
 
           {showSearchBar && (
