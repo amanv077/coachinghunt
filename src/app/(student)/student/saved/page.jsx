@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
+import { getLoginHref } from "@/lib/auth/login";
 import { redirect } from "next/navigation";
 import { listSavedCoachings } from "@/modules/saved-coachings/saved-coachings.service";
 import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
@@ -10,7 +11,7 @@ export const metadata = { title: "Saved Coachings" };
 
 export default async function StudentSavedPage() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(getLoginHref("/student/saved"));
 
   const savedCoachings = await listSavedCoachings(session.user.id);
 

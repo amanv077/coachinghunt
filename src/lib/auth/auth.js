@@ -39,7 +39,9 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
   },
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
   pages: {
     signIn: "/login",
   },

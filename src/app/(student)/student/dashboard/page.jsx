@@ -3,6 +3,7 @@ import { getStudentDashboard } from "@/modules/admin/admin.service";
 import { getPendingDemoRequestCount } from "@/modules/demo-requests/demo-requests.service";
 import { listSavedCoachings } from "@/modules/saved-coachings/saved-coachings.service";
 import { getSession } from "@/lib/auth/session";
+import { getLoginHref } from "@/lib/auth/login";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -32,10 +33,10 @@ function StatCard({ label, value, sublabel, href }) {
 
 export default async function StudentDashboardPage() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(getLoginHref("/student/dashboard"));
 
   const data = await getStudentDashboard(session.user.id);
-  if (!data) redirect("/login");
+  if (!data) redirect(getLoginHref("/student/dashboard"));
 
   const pendingRequestCount = await getPendingDemoRequestCount(session.user.id);
   const savedCoachings = await listSavedCoachings(session.user.id);

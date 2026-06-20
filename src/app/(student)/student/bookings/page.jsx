@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getStudentBookings } from "@/modules/bookings/bookings.service";
 import { getStudentDemoRequests } from "@/modules/demo-requests/demo-requests.service";
 import { getSession } from "@/lib/auth/session";
+import { getLoginHref } from "@/lib/auth/login";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -51,7 +52,7 @@ function BookingCard({ booking, showCancel = false }) {
 
 export default async function StudentBookingsPage() {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(getLoginHref("/student/bookings"));
 
   const bookings = await getStudentBookings(session.user.id);
   const demoRequests = await getStudentDemoRequests(session.user.id);

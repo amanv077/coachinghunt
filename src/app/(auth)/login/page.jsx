@@ -8,19 +8,30 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
-import { getDashboardPath } from "@/lib/auth/dashboard";
+import {
+  getLoginCallbackFromSearchParams,
+  getPostLoginDestination,
+} from "@/lib/auth/login";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { update } = useSession();
+  const { data: session, status, update } = useSession();
   const { addToast } = useToast();
-  const redirectTo = searchParams.get("redirect");
+  const callbackUrl = getLoginCallbackFromSearchParams(searchParams);
   const registered = searchParams.get("registered");
   const registeredToastShown = useRef(false);
+  const redirectStarted = useRef(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status !== "authenticated" || redirectStarted.current) return;
+    redirectStarted.current = true;
+    const destination = getPostLoginDestination(callbackUrl, session.user?.role);
+    router.replace(destination);
+  }, [status, session, callbackUrl, router]);
 
   useEffect(() => {
     if (!registered || registeredToastShown.current) return;
@@ -59,7 +70,7 @@ function LoginForm() {
       }
 
       const session = await update();
-      const destination = redirectTo || getDashboardPath(session?.user?.role) || "/";
+      const destination = getPostLoginDestination(callbackUrl, session?.user?.role);
 
       addToast("Welcome back! You're signed in.", "success");
       router.refresh();
@@ -67,6 +78,10 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "loading" || status === "authenticated") {
+    return <LoginFallback />;
   }
 
   return (
