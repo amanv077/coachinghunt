@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { CoachingCoverImage, CoachingLogo } from "@/components/shared/CoachingMedia";
@@ -142,13 +144,25 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
           </span>
         </div>
 
-        <div className="mt-3">
-          <CompareCoachingButton coaching={coaching} />
+        <div className="mt-3 flex items-stretch gap-2">
+          {onPreview ? (
+            <Button
+              type="button"
+              className="min-h-11 flex-1 rounded-xl font-semibold"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview();
+              }}
+            >
+              View details
+            </Button>
+          ) : (
+            <Link href={`/coaching/${coaching.slug}`} className="flex-1">
+              <Button className="min-h-11 w-full rounded-xl font-semibold">View details</Button>
+            </Link>
+          )}
+          <CompareCoachingButton coaching={coaching} size="sm" />
         </div>
-
-        <p className="mt-3 text-xs font-medium text-secondary md:opacity-0 md:transition md:group-hover:opacity-100">
-          Tap for details →
-        </p>
       </div>
     </article>
   );

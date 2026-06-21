@@ -23,6 +23,10 @@ export function CityAutocomplete({
   placeholder = "Type your city…",
   id,
   name,
+  variant = "default",
+  className,
+  inputClassName,
+  listClassName,
 }) {
   const inputId = id || name || "city";
   const [inputValue, setInputValue] = useState(value);
@@ -102,7 +106,7 @@ export function CityAutocomplete({
   }
 
   return (
-    <div ref={containerRef} className="relative space-y-1">
+    <div ref={containerRef} className={cn("relative", label ? "space-y-1" : "", className)}>
       {label && (
         <label htmlFor={inputId} className="block text-sm font-medium text-foreground">
           {label}
@@ -126,14 +130,20 @@ export function CityAutocomplete({
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         className={cn(
-          "w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/20 min-h-11",
-          error ? "border-danger" : "border-border"
+          variant === "plain"
+            ? "min-h-11 w-full border-0 bg-transparent text-sm outline-none shadow-none ring-0 focus:border-0 focus:ring-0"
+            : "min-h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/20",
+          variant !== "plain" && (error ? "border-danger" : "border-border"),
+          inputClassName
         )}
       />
       {error && <p className="text-xs text-danger">{error}</p>}
       {open && inputValue.trim().length >= 1 && (
         <ul
-          className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-border bg-white shadow-lg"
+          className={cn(
+            "absolute z-[60] mt-1 w-full overflow-hidden rounded-xl border border-border bg-white shadow-lg",
+            listClassName
+          )}
           role="listbox"
         >
           {loading && (

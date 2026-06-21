@@ -2,8 +2,10 @@ import {
   getFeaturedCoachings,
   getFeaturedReviews,
   getPlatformStats,
+  getExamCoachingCounts,
 } from "@/modules/coachings/coachings.service";
 import { HomepageHero } from "@/components/marketing/HomepageHero";
+import { ExamCategories } from "@/components/marketing/ExamCategories";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { BenefitsSection } from "@/components/marketing/BenefitsSection";
 import { FeaturedCoachings } from "@/components/marketing/FeaturedCoachings";
@@ -16,15 +18,17 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [featured, stats, reviews] = await Promise.all([
+  const [featured, stats, reviews, examCounts] = await Promise.all([
     getFeaturedCoachings(6),
     getPlatformStats(),
     getFeaturedReviews(3),
+    getExamCoachingCounts(),
   ]);
 
   return (
     <>
       <HomepageHero stats={stats} />
+      <ExamCategories counts={examCounts} />
       <HowItWorks />
       <FeaturedCoachings coachings={featured} />
       <TestimonialsSection reviews={reviews} />
