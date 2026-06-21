@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { Badge } from "@/components/ui/Badge";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 
 export default function CoachingBranchesPage() {
   const { addToast } = useToast();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [form, setForm] = useState({
     branchName: "",
     city: "",
@@ -28,7 +30,7 @@ export default function CoachingBranchesPage() {
   }
 
   useEffect(() => {
-    loadBranches();
+    loadBranches().finally(() => setFetching(false));
   }, []);
 
   async function handleCreate(e) {
@@ -100,7 +102,9 @@ export default function CoachingBranchesPage() {
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Your branches</h2>
-        {branches.length === 0 ? (
+        {fetching ? (
+          <DashboardListSkeleton count={5} />
+        ) : branches.length === 0 ? (
           <Card><p className="text-muted">No branches added yet.</p></Card>
         ) : (
           <div className="space-y-3">

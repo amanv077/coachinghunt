@@ -426,6 +426,7 @@ model BlogPost {
   postType      PostType   @default(BLOG)
   status        BlogStatus @default(DRAFT)
   publishedAt   DateTime?
+  authorName    String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -464,4 +465,18 @@ model AuditLog {
   @@index([actorUserId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model BlogQuery {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  blogSlug  String
+  blogTitle String
+  status    String   @default("PENDING") // PENDING, CONTACTED, FAKE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
 }

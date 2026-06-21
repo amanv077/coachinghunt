@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminFeeRecordsPage() {
   const { addToast } = useToast();
   const [records, setRecords] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/fee-records").then((r) => r.json()).then((d) => d.success && setRecords(d.data));
+    fetch("/api/admin/fee-records")
+      .then((r) => r.json())
+      .then((d) => d.success && setRecords(d.data))
+      .finally(() => setFetching(false));
   }, []);
 
   async function markPaid(id) {
@@ -31,7 +36,9 @@ export default function AdminFeeRecordsPage() {
     <div>
       <h1 className="text-2xl font-bold">Platform Fee Records</h1>
       <div className="mt-6 space-y-3">
-        {records.length === 0 ? (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : records.length === 0 ? (
           <Card><p className="text-muted">No fee records yet.</p></Card>
         ) : (
           records.map((record) => (

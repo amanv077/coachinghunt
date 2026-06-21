@@ -20,3 +20,8 @@ export function getPostLoginDestination(callbackUrl, role) {
 export function getLoginCallbackFromSearchParams(searchParams) {
   return searchParams.get("callbackUrl") || searchParams.get("redirect");
 }
+
+export function redirectAfterLogin(destination) {
+  if (typeof window === "undefined") return;
+  window.location.replace(destination);
+}

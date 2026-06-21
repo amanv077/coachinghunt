@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function CoachingOffersPage() {
@@ -12,14 +13,20 @@ export default function CoachingOffersPage() {
   const [offers, setOffers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [form, setForm] = useState({ title: "", description: "", promoCode: "", validFrom: "", validTill: "" });
 
   useEffect(() => {
-    fetch("/api/coachings/me").then((r) => r.json()).then((d) => {
-      if (d.success) {
-        fetch(`/api/offers?coachingId=${d.data.id}`).then((r) => r.json()).then((o) => o.success && setOffers(o.data));
-      }
-    });
+    fetch("/api/coachings/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          return fetch(`/api/offers?coachingId=${d.data.id}`)
+            .then((r) => r.json())
+            .then((o) => o.success && setOffers(o.data));
+        }
+      })
+      .finally(() => setFetching(false));
   }, []);
 
   async function handleCreate(e) {
@@ -62,7 +69,10 @@ export default function CoachingOffersPage() {
         </Card>
       )}
       <div className="mt-6 space-y-3">
-        {offers.map((o) => (
+        {fetching ? (
+          <DashboardListSkeleton count={5} />
+        ) : (
+          offers.map((o) => (
           <Card key={o.id}>
             <p className="font-medium">{o.title}</p>
             {o.description && <p className="text-sm text-muted">{o.description}</p>}
@@ -72,7 +82,8 @@ export default function CoachingOffersPage() {
               </p>
             )}
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

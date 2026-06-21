@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function CoachingDemoSlotsPage() {
@@ -14,17 +15,27 @@ export default function CoachingDemoSlotsPage() {
   const [courses, setCourses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [form, setForm] = useState({
     courseId: "", topic: "", teacherName: "", demoDate: "", startTime: "16:00", endTime: "17:00", durationMinutes: 60, capacity: 30, venueName: "", venueAddress: "", joiningLink: "",
   });
 
   useEffect(() => {
-    fetch("/api/coachings/me").then((r) => r.json()).then((d) => {
-      if (d.success) {
-        fetch(`/api/courses?coachingId=${d.data.id}`).then((r) => r.json()).then((c) => c.success && setCourses(c.data));
-        fetch(`/api/demo-slots?coachingId=${d.data.id}&includePast=true`).then((r) => r.json()).then((s) => s.success && setSlots(s.data));
-      }
-    });
+    fetch("/api/coachings/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          return Promise.all([
+            fetch(`/api/courses?coachingId=${d.data.id}`)
+              .then((r) => r.json())
+              .then((c) => c.success && setCourses(c.data)),
+            fetch(`/api/demo-slots?coachingId=${d.data.id}&includePast=true`)
+              .then((r) => r.json())
+              .then((s) => s.success && setSlots(s.data)),
+          ]);
+        }
+      })
+      .finally(() => setFetching(false));
   }, []);
 
   async function handleCreate(e) {
@@ -76,7 +87,10 @@ export default function CoachingDemoSlotsPage() {
       )}
 
       <div className="mt-6 space-y-3">
-        {slots.map((s) => (
+        {fetching ? (
+          <DashboardListSkeleton count={5} />
+        ) : (
+          slots.map((s) => (
           <Card key={s.id}>
             <div className="flex justify-between">
               <div>
@@ -87,7 +101,8 @@ export default function CoachingDemoSlotsPage() {
               <Badge variant={s.status === "OPEN" ? "success" : "default"}>{s.status}</Badge>
             </div>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

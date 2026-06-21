@@ -65,3 +65,154 @@ body {
 .spinner {
   animation: spin 0.8s linear infinite;
 }
+
+@keyframes bounce-wave {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+.loader-dot {
+  animation: bounce-wave 1.2s ease-in-out infinite;
+}
+
+.loader-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Blog editor (TipTap) */
+.blog-editor-body {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.blog-editor-body p.is-editor-empty:first-child::before {
+  color: var(--color-text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.blog-editor-body h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.blog-editor-body h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.blog-editor-body ul,
+.blog-editor-body ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.blog-editor-body ul {
+  list-style: disc;
+}
+
+.blog-editor-body ol {
+  list-style: decimal;
+}
+
+.blog-editor-body blockquote {
+  border-left: 3px solid var(--color-secondary-muted);
+  color: var(--color-text-muted);
+  margin: 1rem 0;
+  padding-left: 1rem;
+}
+
+.blog-editor-body a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+.blog-editor-body img.blog-editor-image,
+.blog-editor-image {
+  border-radius: var(--radius-lg);
+  display: block;
+  height: auto;
+  margin: 1rem 0;
+  max-width: 100%;
+}
+
+/* Published blog content */
+.blog-content {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.blog-content--plain {
+  white-space: pre-wrap;
+}
+
+.blog-content h2 {
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+}
+
+.blog-content h3 {
+  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.blog-content p {
+  margin: 0 0 1rem;
+}
+
+.blog-content ul,
+.blog-content ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.blog-content ul {
+  list-style: disc;
+}
+
+.blog-content ol {
+  list-style: decimal;
+}
+
+.blog-content li {
+  margin: 0.25rem 0;
+}
+
+.blog-content blockquote {
+  border-left: 3px solid var(--color-secondary-muted);
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+}
+
+.blog-content a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+.blog-content img {
+  border-radius: var(--radius-xl);
+  display: block;
+  height: auto;
+  margin: 1.5rem 0;
+  max-width: 100%;
+}

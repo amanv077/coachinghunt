@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { BookingCardSkeletonList } from "@/components/ui/BookingCardSkeleton";
 import { DemoRequestCard } from "@/components/coaching/DemoRequestCard";
 import { RequestReviewButton } from "@/components/shared/RequestReviewButton";
 import { cn } from "@/lib/utils/cn";
@@ -77,7 +78,7 @@ export default function CoachingBookingsPage() {
 
       <div className="mt-6 space-y-3">
         {loading ? (
-          <Card className="py-12 text-center text-sm text-muted">Loading...</Card>
+          <BookingCardSkeletonList count={4} />
         ) : activeTab === "bookings" ? (
           bookings.length === 0 ? (
             <EmptyState

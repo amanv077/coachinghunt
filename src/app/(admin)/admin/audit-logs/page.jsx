@@ -3,19 +3,26 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/audit-logs").then((r) => r.json()).then((d) => d.success && setLogs(d.data.items));
+    fetch("/api/admin/audit-logs")
+      .then((r) => r.json())
+      .then((d) => d.success && setLogs(d.data.items))
+      .finally(() => setFetching(false));
   }, []);
 
   return (
     <div>
       <h1 className="text-2xl font-bold">Audit Logs</h1>
       <div className="mt-6 space-y-3">
-        {logs.length === 0 ? (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : logs.length === 0 ? (
           <Card><p className="text-muted">No audit logs yet.</p></Card>
         ) : (
           logs.map((log) => (

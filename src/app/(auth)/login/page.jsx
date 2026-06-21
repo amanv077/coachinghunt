@@ -3,53 +3,50 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { useToast } from "@/components/ui/Toast";
+import { Loader } from "@/components/ui/Loader";
+import { Logo } from "@/components/shared/Logo";
 import {
   getLoginCallbackFromSearchParams,
   getPostLoginDestination,
+  redirectAfterLogin,
 } from "@/lib/auth/login";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, status, update } = useSession();
-  const { addToast } = useToast();
+  const { data: session, status } = useSession();
   const callbackUrl = getLoginCallbackFromSearchParams(searchParams);
   const registered = searchParams.get("registered");
-  const registeredToastShown = useRef(false);
+  const registeredBannerShown = useRef(false);
   const redirectStarted = useRef(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
 
-  useEffect(() => {
-    if (status !== "authenticated" || redirectStarted.current) return;
+  function completeLogin(role) {
+    if (redirectStarted.current) return;
     redirectStarted.current = true;
-    const destination = getPostLoginDestination(callbackUrl, session.user?.role);
-    router.replace(destination);
-  }, [status, session, callbackUrl, router]);
+    redirectAfterLogin(getPostLoginDestination(callbackUrl, role));
+  }
 
   useEffect(() => {
-    if (!registered || registeredToastShown.current) return;
-    registeredToastShown.current = true;
+    if (status !== "authenticated") return;
+    completeLogin(session?.user?.role);
+  }, [status, session, callbackUrl]);
 
-    if (registered === "student") {
-      addToast("Account created! Sign in to continue.", "success");
-      return;
-    }
-
-    if (registered === "coaching") {
-      addToast("Coaching account created! Sign in to finish setup.", "success");
-    }
-  }, [registered, addToast]);
+  useEffect(() => {
+    if (!registered || registeredBannerShown.current) return;
+    registeredBannerShown.current = true;
+    setShowRegisteredBanner(true);
+  }, [registered]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError("");
 
     try {
@@ -61,27 +58,29 @@ function LoginForm() {
 
       if (result?.error) {
         setError("Invalid email or password");
+        setSubmitting(false);
         return;
       }
 
       if (!result?.ok) {
         setError("Could not sign in. Please try again.");
+        setSubmitting(false);
         return;
       }
 
-      const session = await update();
-      const destination = getPostLoginDestination(callbackUrl, session?.user?.role);
-
-      addToast("Welcome back! You're signed in.", "success");
-      router.refresh();
-      router.push(destination);
-    } finally {
-      setLoading(false);
+      completeLogin(null);
+    } catch {
+      setError("Could not sign in. Please try again.");
+      setSubmitting(false);
     }
   }
 
-  if (status === "loading" || status === "authenticated") {
-    return <LoginFallback />;
+  if (status === "loading") {
+    return <LoginFallback message="Checking your session…" />;
+  }
+
+  if (status === "authenticated" && !submitting) {
+    return <LoginRedirectState message="Opening your dashboard…" />;
   }
 
   return (
@@ -91,6 +90,14 @@ function LoginForm() {
         <p className="mt-2 text-sm text-muted">Sign in to your CoachingHunt account</p>
       </div>
 
+      {showRegisteredBanner && (
+        <p className="mt-6 rounded-lg bg-secondary/10 px-3 py-2 text-sm text-secondary">
+          {registered === "coaching"
+            ? "Coaching account created. Sign in to finish setup."
+            : "Account created. Sign in to continue."}
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <Input
           label="Email"
@@ -98,6 +105,7 @@ function LoginForm() {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
+          disabled={submitting}
         />
         <div>
           <div className="mb-1.5 flex items-center justify-between">
@@ -111,13 +119,14 @@ function LoginForm() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
+            disabled={submitting}
           />
         </div>
         {error && (
           <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
         )}
-        <Button type="submit" className="min-h-11 w-full" loading={loading}>
-          Sign In
+        <Button type="submit" className="min-h-11 w-full" loading={submitting}>
+          {submitting ? "Signing in…" : "Sign In"}
         </Button>
       </form>
 
@@ -135,15 +144,28 @@ function LoginForm() {
   );
 }
 
-function LoginFallback() {
+function LoginRedirectState({ message }) {
   return (
     <Card className="shadow-md">
-      <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted">Sign in to your CoachingHunt account</p>
+      <div className="flex min-h-72 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
+        <Logo href={null} size="md" />
+        <Loader size="lg" label={message} />
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-foreground">{message}</p>
+          <p className="text-sm text-muted">This usually takes a moment.</p>
+        </div>
       </div>
-      <div className="mt-6 h-48 flex items-center justify-center text-sm text-muted">
-        Loading…
+    </Card>
+  );
+}
+
+function LoginFallback({ message = "Loading…" }) {
+  return (
+    <Card className="shadow-md">
+      <div className="flex min-h-72 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
+        <Logo href={null} size="md" />
+        <Loader size="lg" label={message} />
+        <p className="text-sm text-muted">{message}</p>
       </div>
     </Card>
   );

@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminCoachingsPage() {
   const { addToast } = useToast();
   const [coachings, setCoachings] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/coachings").then((r) => r.json()).then((d) => d.success && setCoachings(d.data.items));
+    fetch("/api/admin/coachings")
+      .then((r) => r.json())
+      .then((d) => d.success && setCoachings(d.data.items))
+      .finally(() => setFetching(false));
   }, []);
 
   async function verify(id, status) {
@@ -60,7 +65,10 @@ export default function AdminCoachingsPage() {
     <div>
       <h1 className="text-2xl font-bold">Coachings</h1>
       <div className="mt-6 space-y-3">
-        {coachings.map((c) => (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : (
+          coachings.map((c) => (
           <Card key={c.id} className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="font-medium">{c.name}</p>
@@ -87,7 +95,8 @@ export default function AdminCoachingsPage() {
               </Button>
             </div>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

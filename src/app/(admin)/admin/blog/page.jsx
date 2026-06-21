@@ -5,14 +5,19 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminBlogPage() {
   const { addToast } = useToast();
   const [posts, setPosts] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/blog").then((r) => r.json()).then((d) => d.success && setPosts(d.data));
+    fetch("/api/admin/blog")
+      .then((r) => r.json())
+      .then((d) => d.success && setPosts(d.data))
+      .finally(() => setFetching(false));
   }, []);
 
   async function removePost(id) {
@@ -32,7 +37,10 @@ export default function AdminBlogPage() {
         <Link href="/admin/blog/new"><Button className="min-h-11 w-full sm:w-auto">Create post</Button></Link>
       </div>
       <div className="mt-6 space-y-3">
-        {posts.map((post) => (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : (
+          posts.map((post) => (
           <Card key={post.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{post.title}</p>
@@ -46,7 +54,8 @@ export default function AdminBlogPage() {
               <Button size="sm" variant="danger" onClick={() => removePost(post.id)}>Delete</Button>
             </div>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

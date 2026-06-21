@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Loader } from "@/components/ui/Loader";
 import Link from "next/link";
 
 export default function CoachingAnalyticsPage() {
@@ -24,7 +25,7 @@ export default function CoachingAnalyticsPage() {
   }, []);
 
   if (!data) {
-    return <Card className="py-12 text-center text-muted">Loading analytics...</Card>;
+    return <Loader fullPage label="Loading analytics…" />;
   }
 
   return (

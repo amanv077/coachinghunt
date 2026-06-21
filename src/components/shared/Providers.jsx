@@ -5,9 +5,9 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { CompareProvider } from "@/components/shared/CompareContext";
 import { CompareBar } from "@/components/shared/CompareBar";
 
-export function Providers({ children }) {
+export function Providers({ children, session }) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <ToastProvider>
         <CompareProvider>
           {children}

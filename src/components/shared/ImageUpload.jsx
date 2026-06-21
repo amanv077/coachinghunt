@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { uploadImageToCloudinary } from "@/lib/cloudinary/upload-client";
 import { cn } from "@/lib/utils/cn";
 
 export function ImageUpload({
@@ -17,28 +18,6 @@ export function ImageUpload({
 
   const images = multiple ? (Array.isArray(value) ? value : []) : value ? [value] : [];
 
-  async function uploadFile(file) {
-    const sigRes = await fetch("/api/upload/signature", { method: "POST" });
-    const sigData = await sigRes.json();
-    if (!sigData.success) throw new Error(sigData.message || "Upload failed");
-
-    const { timestamp, folder, signature, cloudName, apiKey } = sigData.data;
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("api_key", apiKey);
-    formData.append("timestamp", String(timestamp));
-    formData.append("signature", signature);
-    formData.append("folder", folder);
-
-    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    const uploadData = await uploadRes.json();
-    if (!uploadData.secure_url) throw new Error("Upload failed");
-    return uploadData.secure_url;
-  }
-
   async function handleFiles(e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -50,11 +29,11 @@ export function ImageUpload({
       if (multiple) {
         const urls = [];
         for (const file of files) {
-          urls.push(await uploadFile(file));
+          urls.push(await uploadImageToCloudinary(file));
         }
         onChange([...(Array.isArray(value) ? value : []), ...urls]);
       } else {
-        const url = await uploadFile(files[0]);
+        const url = await uploadImageToCloudinary(files[0]);
         onChange(url);
       }
     } catch (err) {

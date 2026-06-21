@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminReviewsPage() {
   const { addToast } = useToast();
   const [reviews, setReviews] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/reviews?status=PENDING").then((r) => r.json()).then((d) => d.success && setReviews(d.data));
+    fetch("/api/reviews?status=PENDING")
+      .then((r) => r.json())
+      .then((d) => d.success && setReviews(d.data))
+      .finally(() => setFetching(false));
   }, []);
 
   async function moderate(id, status) {
@@ -31,7 +36,9 @@ export default function AdminReviewsPage() {
     <div>
       <h1 className="text-2xl font-bold">Review Moderation</h1>
       <div className="mt-6 space-y-3">
-        {reviews.length === 0 ? (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : reviews.length === 0 ? (
           <Card><p className="text-muted">No pending reviews.</p></Card>
         ) : (
           reviews.map((r) => (

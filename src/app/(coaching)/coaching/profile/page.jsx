@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { ExamMultiSelect } from "@/components/shared/ExamMultiSelect";
@@ -13,6 +14,31 @@ import { ImageUpload } from "@/components/shared/ImageUpload";
 import { ProfileCompletenessBar } from "@/components/coaching/ProfileCompletenessBar";
 
 const emptyFaculty = { name: "", qualification: "", bio: "", photoUrl: "" };
+
+function CoachingProfileSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="mt-2 h-4 w-64" />
+      <Skeleton className="mt-4 h-4 w-full max-w-2xl rounded-full" />
+      <Card className="mt-6 max-w-2xl">
+        <Skeleton className="h-5 w-24" />
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+        <div className="mt-6 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-11 w-full" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
 
 export default function CoachingProfilePage() {
   const { addToast } = useToast();
@@ -46,6 +72,7 @@ export default function CoachingProfilePage() {
     listingStatus: "DRAFT",
   });
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     fetch("/api/coachings/me")
@@ -82,7 +109,8 @@ export default function CoachingProfilePage() {
             listingStatus: d.data.listingStatus || "DRAFT",
           });
         }
-      });
+      })
+      .finally(() => setFetching(false));
   }, []);
 
   function updateFaculty(index, field, value) {
@@ -147,6 +175,10 @@ export default function CoachingProfilePage() {
       setCompleteness(data.data.completeness);
     }
     addToast(data.success ? "Profile saved" : data.message, data.success ? "success" : "error");
+  }
+
+  if (fetching) {
+    return <CoachingProfileSkeleton />;
   }
 
   return (

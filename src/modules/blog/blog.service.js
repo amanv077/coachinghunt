@@ -48,6 +48,7 @@ export async function createPost(data) {
       postType: data.postType || "BLOG",
       status: data.status || "DRAFT",
       publishedAt: data.status === "PUBLISHED" ? new Date() : null,
+      authorName: data.authorName || null,
     },
   });
 }
@@ -63,6 +64,7 @@ export async function updatePost(id, data) {
       ...(data.coverImageUrl !== undefined && { coverImageUrl: data.coverImageUrl }),
       ...(data.tags && { tags: data.tags }),
       ...(data.postType && { postType: data.postType }),
+      ...(data.authorName !== undefined && { authorName: data.authorName }),
       ...(data.status && {
         status: data.status,
         publishedAt: data.status === "PUBLISHED" ? new Date() : undefined,
@@ -73,4 +75,29 @@ export async function updatePost(id, data) {
 
 export async function deletePost(id) {
   return prisma.blogPost.delete({ where: { id } });
+}
+
+export async function createBlogQuery(data) {
+  return prisma.blogQuery.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      blogSlug: data.blogSlug,
+      blogTitle: data.blogTitle,
+    },
+  });
+}
+
+export async function listBlogQueries() {
+  return prisma.blogQuery.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function updateBlogQueryStatus(id, status) {
+  return prisma.blogQuery.update({
+    where: { id },
+    data: { status },
+  });
 }

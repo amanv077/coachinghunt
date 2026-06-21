@@ -3,14 +3,19 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminQAPage() {
   const { addToast } = useToast();
   const [items, setItems] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/qa").then((r) => r.json()).then((d) => d.success && setItems(d.data));
+    fetch("/api/admin/qa")
+      .then((r) => r.json())
+      .then((d) => d.success && setItems(d.data))
+      .finally(() => setFetching(false));
   }, []);
 
   async function moderate(id, status) {
@@ -30,7 +35,9 @@ export default function AdminQAPage() {
     <div>
       <h1 className="text-2xl font-bold">Q&A Moderation</h1>
       <div className="mt-6 space-y-3">
-        {items.length === 0 ? (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : items.length === 0 ? (
           <Card><p className="text-muted">No pending Q&A.</p></Card>
         ) : (
           items.map((item) => (

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function CoachingCoursesPage() {
@@ -15,17 +16,23 @@ export default function CoachingCoursesPage() {
   const [coachingId, setCoachingId] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [form, setForm] = useState({
     title: "", description: "", targetExam: "", fees: "", durationText: "", scheduleSummary: "", courseType: "BATCH",
   });
 
   useEffect(() => {
-    fetch("/api/coachings/me").then((r) => r.json()).then((d) => {
-      if (d.success) {
-        setCoachingId(d.data.id);
-        fetch(`/api/courses?coachingId=${d.data.id}`).then((r) => r.json()).then((c) => c.success && setCourses(c.data));
-      }
-    });
+    fetch("/api/coachings/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setCoachingId(d.data.id);
+          return fetch(`/api/courses?coachingId=${d.data.id}`)
+            .then((r) => r.json())
+            .then((c) => c.success && setCourses(c.data));
+        }
+      })
+      .finally(() => setFetching(false));
   }, []);
 
   async function handleCreate(e) {
@@ -75,7 +82,10 @@ export default function CoachingCoursesPage() {
       )}
 
       <div className="mt-6 space-y-3">
-        {courses.map((c) => (
+        {fetching ? (
+          <DashboardListSkeleton count={5} />
+        ) : (
+          courses.map((c) => (
           <Card key={c.id}>
             <div className="flex justify-between">
               <div>
@@ -85,7 +95,8 @@ export default function CoachingCoursesPage() {
               <Badge variant={c.status === "ACTIVE" ? "success" : "default"}>{c.status}</Badge>
             </div>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

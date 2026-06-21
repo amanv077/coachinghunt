@@ -65,6 +65,30 @@ function CloseIcon({ className }) {
   );
 }
 
+function AuthNavSkeleton() {
+  return (
+    <div className="flex items-center gap-1.5" aria-hidden>
+      <span className="hidden h-9 w-16 animate-pulse rounded-lg bg-surface-muted sm:block" />
+      <span className="h-9 w-9 animate-pulse rounded-full bg-surface-muted" />
+    </div>
+  );
+}
+
+function GuestAuthActions({ className }) {
+  return (
+    <div className={cn("flex items-center gap-1.5", className)}>
+      <Link href="/login">
+        <Button variant="ghost" size="sm">
+          Login
+        </Button>
+      </Link>
+      <Link href="/signup">
+        <Button size="sm">Sign Up</Button>
+      </Link>
+    </div>
+  );
+}
+
 function NavLink({ href, label, pathname, icon, onNavigate }) {
   const active = isNavLinkActive(pathname, href);
 
@@ -281,7 +305,7 @@ function MobileDrawer({ open, onClose, title, children }) {
 }
 
 export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDesktop = false }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -385,19 +409,12 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
               </Link>
             )}
 
-            {session ? (
+            {status === "loading" ? (
+              <AuthNavSkeleton />
+            ) : session ? (
               <ProfileMenu session={session} />
             ) : (
-              <div className="hidden items-center gap-1.5 sm:flex">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
-              </div>
+              <GuestAuthActions className="hidden sm:flex" />
             )}
 
             {showMobileMenuButton && (
@@ -451,7 +468,11 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
           </div>
         )}
 
-        {!session && !isDashboard && (
+        {status === "loading" ? (
+          <div className="mt-4 border-t border-border pt-4">
+            <div className="h-11 animate-pulse rounded-lg bg-surface-muted" />
+          </div>
+        ) : !session && !isDashboard ? (
           <div className="mt-4 space-y-2 border-t border-border pt-4">
             <Link href="/login" onClick={closeMenu} className="block">
               <Button variant="ghost" className="min-h-11 w-full">
@@ -462,7 +483,7 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
               <Button className="min-h-11 w-full">Sign Up free</Button>
             </Link>
           </div>
-        )}
+        ) : null}
 
         {isDashboard && (
           <div className="mt-4 space-y-2 border-t border-border pt-4">

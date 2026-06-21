@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
 export default function AdminUsersPage() {
   const { addToast } = useToast();
   const [users, setUsers] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/users").then((r) => r.json()).then((d) => d.success && setUsers(d.data.items));
+    fetch("/api/admin/users")
+      .then((r) => r.json())
+      .then((d) => d.success && setUsers(d.data.items))
+      .finally(() => setFetching(false));
   }, []);
 
   async function toggleStatus(id, isActive) {
@@ -31,7 +36,10 @@ export default function AdminUsersPage() {
     <div>
       <h1 className="text-2xl font-bold">Users</h1>
       <div className="mt-6 space-y-3">
-        {users.map((u) => (
+        {fetching ? (
+          <DashboardListSkeleton count={8} />
+        ) : (
+          users.map((u) => (
           <Card key={u.id} className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="font-medium">{u.name}</p>
@@ -45,7 +53,8 @@ export default function AdminUsersPage() {
               </Button>
             </div>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

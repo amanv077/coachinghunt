@@ -10,6 +10,7 @@ import {
   SearchIcon,
   SavedIcon,
   CompareIcon,
+  BlogIcon,
 } from "@/components/dashboard/student-nav-icons";
 
 export function StudentDashboardShell({ children }) {
@@ -33,6 +34,7 @@ export function StudentDashboardShell({ children }) {
     },
     { href: "/student/bookings", label: "My Bookings", icon: <BookingsIcon /> },
     { href: "/student/offers", label: "Offers", icon: <OffersIcon /> },
+    { href: "/blog", label: "Blog", icon: <BlogIcon /> },
     { href: "/student/profile", label: "Profile", icon: <ProfileIcon /> },
   ];
 
