@@ -11,7 +11,12 @@ export function BlogQuerySection({ blogSlug, blogTitle }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [mounted, setMounted] = useState(false);
   const { addToast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -21,6 +26,23 @@ export function BlogQuerySection({ blogSlug, blogTitle }) {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  if (!mounted) {
+    return (
+      <div className="mt-12 rounded-2xl bg-secondary-light/35 border border-secondary/10 p-6 md:p-8 text-center shadow-sm">
+        <h3 className="text-xl font-bold text-foreground">Need more details or clarification?</h3>
+        <p className="mt-2 text-muted max-w-xl mx-auto text-sm leading-relaxed">
+          Preparing for exams or figuring out which coaching fits you best can be challenging. 
+          Book a free session with one of our counselors for personalized support.
+        </p>
+        <button
+          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary-hover transition-colors"
+        >
+          Book free session
+        </button>
+      </div>
+    );
+  }
 
   if (session) return null;
 
