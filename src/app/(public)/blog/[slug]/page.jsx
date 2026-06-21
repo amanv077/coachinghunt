@@ -8,6 +8,9 @@ import { BlogQuerySection } from "@/components/blog/BlogQuerySection";
 import { blogExcerpt } from "@/lib/utils/html";
 import { formatBlogDate, estimateReadTime, getPostSummary } from "@/lib/utils/blog";
 import { Badge } from "@/components/ui/Badge";
+import { BlogViewTracker } from "@/components/blog/BlogViewTracker";
+import { BlogReactions } from "@/components/blog/BlogReactions";
+import { BlogComments } from "@/components/blog/BlogComments";
 
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
@@ -77,6 +80,10 @@ export default async function BlogPostPage({ params }) {
           {publishedLabel && <time dateTime={new Date(post.publishedAt).toISOString()}>{publishedLabel}</time>}
           {publishedLabel && <span aria-hidden>·</span>}
           <span>{readTime} min read</span>
+          <span aria-hidden>·</span>
+          <span className="flex items-center gap-1">
+            👁 {post.views} views
+          </span>
         </div>
 
         {summary && (
@@ -92,7 +99,10 @@ export default async function BlogPostPage({ params }) {
         />
 
         <BlogContent content={post.content} className="mt-8" />
+        <BlogReactions postId={post.id} initialLikes={post.likes} initialDislikes={post.dislikes} />
+        <BlogComments postId={post.id} />
         <BlogQuerySection blogSlug={post.slug} blogTitle={post.title} />
+        <BlogViewTracker postId={post.id} />
       </article>
     </div>
   );

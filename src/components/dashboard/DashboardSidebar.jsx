@@ -82,12 +82,12 @@ export function DashboardSidebar({ items, title, variant, homeHref }) {
   const meta = variantMeta[variant] ?? variantMeta.student;
 
   return (
-    <aside className="hidden w-[240px] shrink-0 flex-col border-r border-border/80 bg-white lg:w-[260px] md:flex">
+    <aside className="hidden h-full max-h-dvh w-[240px] shrink-0 flex-col overflow-hidden border-r border-border/80 bg-white md:flex lg:w-[260px]">
       <div className="flex h-14 shrink-0 items-center border-b border-border/80 px-4">
         <Logo href={homeHref} size="md" />
       </div>
 
-      <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4">
         {meta.label && (
           <div className="mb-3 px-3">
             {meta.showBadge ? (

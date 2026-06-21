@@ -36,7 +36,7 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
   const courseCount = coaching.courseCount ?? coaching._count?.courses ?? 0;
 
   const cardContent = (
-    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-secondary/30 hover:shadow-lg">
+    <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-secondary/30 hover:shadow-lg">
       <div className="relative h-28">
         <CoachingCoverImage src={coaching.coverImageUrl} variant="card" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(44,76,156,0.15),transparent_60%)]" />
@@ -154,15 +154,18 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
   );
 
   if (onPreview) {
+    function handleCardClick(e) {
+      if (e.target.closest("button, a")) return;
+      onPreview();
+    }
+
     return (
-      <button
-        type="button"
-        onClick={onPreview}
-        className="group block h-full w-full cursor-pointer text-left"
-        aria-label={`View details for ${coaching.name}`}
+      <div
+        onClick={handleCardClick}
+        className="group block h-full w-full min-w-0 cursor-pointer text-left"
       >
         {cardContent}
-      </button>
+      </div>
     );
   }
 

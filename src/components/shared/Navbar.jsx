@@ -358,7 +358,7 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
             <div
               className={cn(
                 "min-w-0 flex-1 px-2 md:max-w-md lg:max-w-lg",
-                variant === "student" ? "block" : "hidden md:block"
+                (variant === "student" && role !== "STUDENT") ? "block" : "hidden md:block"
               )}
             >
               <Suspense fallback={<div className="h-11 rounded-xl bg-surface-muted" />}>
@@ -437,7 +437,7 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
         onClose={closeMenu}
         title={isDashboard ? `${meta.label ?? "Dashboard"} menu` : "Menu"}
       >
-        {showSearchBar && !isDashboard && (
+        {showSearchBar && !isDashboard && role !== "STUDENT" && (
           <div className="mb-4">
             <Suspense fallback={<div className="h-11 rounded-xl bg-surface-muted" />}>
               <NavbarSearch onSearch={closeMenu} />

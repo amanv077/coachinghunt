@@ -47,6 +47,36 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Dashboard: fixed shell + single scroll container on desktop */
+@media (min-width: 768px) {
+  html:has(.dashboard-layout) {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html:has(.dashboard-layout) body {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+}
+
+.dashboard-layout {
+  isolation: isolate;
+}
+
+.dashboard-scroll {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-content {
+  max-width: 100%;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

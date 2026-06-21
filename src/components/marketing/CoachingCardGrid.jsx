@@ -9,8 +9,8 @@ export function CoachingCardGrid({ coachings, className, savedIds = [], showActi
   const [previewSlug, setPreviewSlug] = useState(null);
 
   return (
-    <>
-      <div className={cn("grid gap-4 sm:grid-cols-2", className)}>
+    <div className="w-full min-w-0">
+      <div className={cn("grid w-full min-w-0 gap-4 sm:grid-cols-2", className)}>
         {coachings.map((coaching) => (
           <CoachingCard
             key={coaching.id}
@@ -26,6 +26,6 @@ export function CoachingCardGrid({ coachings, className, savedIds = [], showActi
         open={!!previewSlug}
         onClose={() => setPreviewSlug(null)}
       />
-    </>
+    </div>
   );
 }

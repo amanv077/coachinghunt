@@ -7,9 +7,19 @@ const BLOG_ALLOWED_ATTR = ["href", "src", "alt", "title", "target", "rel", "clas
 
 export function sanitizeBlogHtml(html) {
   if (typeof window === "undefined") {
-    // Return raw HTML during server-side rendering to avoid importing jsdom.
-    // The content is already sanitized/trusted at submission time.
-    return html;
+    try {
+      const sanitizeHtml = require("sanitize-html");
+      return sanitizeHtml(html, {
+        allowedTags: BLOG_ALLOWED_TAGS,
+        allowedAttributes: {
+          a: ["href", "target", "rel", "title", "class"],
+          img: ["src", "alt", "title", "class"],
+          "*": ["class"],
+        },
+      });
+    } catch (e) {
+      return html;
+    }
   }
   try {
     const DOMPurify = require("isomorphic-dompurify");

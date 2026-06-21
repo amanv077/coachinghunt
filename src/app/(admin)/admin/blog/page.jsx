@@ -44,9 +44,24 @@ export default function AdminBlogPage() {
           <Card key={post.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{post.title}</p>
-              <div className="mt-1 flex flex-wrap gap-2">
+              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5 items-center text-xs text-muted">
                 <Badge>{post.postType}</Badge>
                 <Badge variant={post.status === "PUBLISHED" ? "success" : "warning"}>{post.status}</Badge>
+                <span className="flex items-center gap-1 text-muted/90 font-medium">
+                  👁 {post.views || 0} views
+                </span>
+                <span aria-hidden className="text-muted/50">•</span>
+                <span className="flex items-center gap-1 text-muted/90 font-medium">
+                  👍 {post.likes || 0} likes
+                </span>
+                <span aria-hidden className="text-muted/50">•</span>
+                <span className="flex items-center gap-1 text-muted/90 font-medium">
+                  👎 {post.dislikes || 0} dislikes
+                </span>
+                <span aria-hidden className="text-muted/50">•</span>
+                <span className="flex items-center gap-1 text-muted/90 font-medium">
+                  💬 {post.commentsCount || 0} comments
+                </span>
               </div>
             </div>
             <div className="flex gap-2">

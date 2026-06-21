@@ -64,7 +64,7 @@ export default async function StudentDashboardPage() {
     .join(" ");
 
   return (
-    <div className="space-y-8">
+    <div className="w-full min-w-0 space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}!</h1>
@@ -182,7 +182,7 @@ export default async function StudentDashboardPage() {
         )}
       </section>
 
-      <section>
+      <section className="w-full min-w-0 max-w-full">
         <SectionHeader title={discoverTitle} href={searchHref} linkLabel="Browse all" />
         <CoachingCardGrid
           coachings={topCoachings}
@@ -191,7 +191,7 @@ export default async function StudentDashboardPage() {
         />
       </section>
 
-      <section>
+      <section className="w-full min-w-0 max-w-full">
         <SectionHeader title="Saved Coachings" href="/student/saved" linkLabel="View all" />
         {savedCoachings.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-surface-muted/50 px-6 py-8 text-center">
@@ -210,7 +210,7 @@ export default async function StudentDashboardPage() {
       </section>
 
       {offers.length > 0 && (
-        <section>
+        <section className="w-full min-w-0 max-w-full">
           <SectionHeader title="Latest Offers" href="/student/offers" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {offers.map((offer) => (

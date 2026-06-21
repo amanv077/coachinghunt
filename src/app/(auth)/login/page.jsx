@@ -4,8 +4,9 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { AuthInput } from "@/components/shared/AuthInput";
 import { Button } from "@/components/ui/Button";
 import { Loader } from "@/components/ui/Loader";
 import { Logo } from "@/components/shared/Logo";
@@ -14,6 +15,19 @@ import {
   getPostLoginDestination,
   redirectAfterLogin,
 } from "@/lib/auth/login";
+
+// Vector Icons
+const EmailIcon = (props) => (
+  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+  </svg>
+);
+
+const LockIcon = (props) => (
+  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+);
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -84,74 +98,101 @@ function LoginForm() {
   }
 
   return (
-    <Card className="shadow-md">
-      <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted">Sign in to your CoachingHunt account</p>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Card className="rounded-2xl border border-border/80 bg-white p-6 sm:p-8 shadow-sm">
+        <div className="pb-5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Welcome back</h1>
+          <p className="mt-1.5 text-sm text-muted">Sign in to manage your CoachingHunt account</p>
+        </div>
 
-      {showRegisteredBanner && (
-        <p className="mt-6 rounded-lg bg-secondary/10 px-3 py-2 text-sm text-secondary">
-          {registered === "coaching"
-            ? "Coaching account created. Sign in to finish setup."
-            : "Account created. Sign in to continue."}
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-          disabled={submitting}
-        />
-        <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="text-sm font-medium text-foreground">Password</label>
-            <Link href="/contact" className="text-xs font-medium text-secondary hover:underline">
-              Forgot password?
-            </Link>
+        {showRegisteredBanner && (
+          <div className="mt-2 mb-4 rounded-xl bg-indigo-50/50 border border-indigo-100 px-4 py-3 text-sm text-indigo-700 flex items-center gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs">
+              ✓
+            </span>
+            <span>
+              {registered === "coaching"
+                ? "Coaching account created. Sign in to finish setup."
+                : "Account created successfully. Sign in to continue."}
+            </span>
           </div>
-          <Input
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <AuthInput
+            label="Email"
+            type="email"
+            placeholder="name@example.com"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
             required
             disabled={submitting}
+            icon={EmailIcon}
           />
-        </div>
-        {error && (
-          <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
-        )}
-        <Button type="submit" className="min-h-11 w-full" loading={submitting}>
-          {submitting ? "Signing in…" : "Sign In"}
-        </Button>
-      </form>
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-sm font-semibold text-foreground/90">Password</label>
+              <Link href="/contact" className="text-xs font-semibold text-secondary hover:text-secondary-hover transition-colors">
+                Forgot password?
+              </Link>
+            </div>
+            <AuthInput
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              disabled={submitting}
+              icon={LockIcon}
+              showPasswordToggle={true}
+            />
+          </div>
 
-      <div className="mt-6 border-t border-border pt-6 text-center text-sm text-muted">
-        New here?{" "}
-        <Link href="/signup" className="font-semibold text-secondary hover:underline">
-          Student signup
-        </Link>{" "}
-        or{" "}
-        <Link href="/signup/coaching" className="font-semibold text-secondary hover:underline">
-          Coaching signup
-        </Link>
-      </div>
-    </Card>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl bg-danger/5 border border-danger/10 px-4 py-3 text-sm text-danger flex items-center gap-2"
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-danger/10 text-danger text-xs font-bold">
+                !
+              </span>
+              <span>{error}</span>
+            </motion.div>
+          )}
+
+          <Button type="submit" className="min-h-12 w-full rounded-xl mt-2 font-semibold shadow-xs" loading={submitting}>
+            {submitting ? "Signing in…" : "Sign In"}
+          </Button>
+        </form>
+
+        <div className="mt-6 border-t border-border/80 pt-6 text-center text-sm text-muted">
+          New here?{" "}
+          <Link href="/signup/student" className="font-semibold text-secondary hover:text-secondary-hover hover:underline transition-colors">
+            Student signup
+          </Link>{" "}
+          or{" "}
+          <Link href="/signup/coaching" className="font-semibold text-secondary hover:text-secondary-hover hover:underline transition-colors">
+            Coaching signup
+          </Link>
+        </div>
+      </Card>
+    </motion.div>
   );
 }
 
 function LoginRedirectState({ message }) {
   return (
-    <Card className="shadow-md">
-      <div className="flex min-h-72 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
-        <Logo href={null} size="md" />
+    <Card className="rounded-2xl border border-border/80 bg-white p-6 sm:p-8 shadow-sm">
+      <div className="flex min-h-72 flex-col items-center justify-center gap-5 px-4 py-8 text-center">
+        <Logo href={null} size="lg" />
         <Loader size="lg" label={message} />
-        <div className="space-y-1">
-          <p className="text-base font-semibold text-foreground">{message}</p>
+        <div className="space-y-1 mt-2">
+          <p className="text-base font-bold text-foreground">{message}</p>
           <p className="text-sm text-muted">This usually takes a moment.</p>
         </div>
       </div>
@@ -161,11 +202,11 @@ function LoginRedirectState({ message }) {
 
 function LoginFallback({ message = "Loading…" }) {
   return (
-    <Card className="shadow-md">
-      <div className="flex min-h-72 flex-col items-center justify-center gap-4 px-4 py-10 text-center">
-        <Logo href={null} size="md" />
+    <Card className="rounded-2xl border border-border/80 bg-white p-6 sm:p-8 shadow-sm">
+      <div className="flex min-h-72 flex-col items-center justify-center gap-5 px-4 py-8 text-center">
+        <Logo href={null} size="lg" />
         <Loader size="lg" label={message} />
-        <p className="text-sm text-muted">{message}</p>
+        <p className="text-sm text-muted mt-2">{message}</p>
       </div>
     </Card>
   );
@@ -178,3 +219,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+

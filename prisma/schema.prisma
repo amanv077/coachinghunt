@@ -121,6 +121,8 @@ model User {
   coachingProfile CoachingProfile?
   auditLogs       AuditLog[]
   coachingQuestions CoachingQA[]   @relation("AskedByUser")
+  blogReactions   BlogReaction[]
+  blogComments    BlogComment[]
 }
 
 model StudentProfile {
@@ -427,11 +429,46 @@ model BlogPost {
   status        BlogStatus @default(DRAFT)
   publishedAt   DateTime?
   authorName    String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  views         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reactions     BlogReaction[]
+  comments      BlogComment[]
 
   @@index([status])
   @@index([postType])
+}
+
+model BlogReaction {
+  id         String   @id @default(cuid())
+  blogPostId String
+  userId     String?
+  ipAddress  String
+  type       String   // "LIKE" or "DISLIKE"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([blogPostId, ipAddress, userId])
+  @@index([blogPostId])
+  @@index([userId])
+}
+
+model BlogComment {
+  id         String   @id @default(cuid())
+  blogPostId String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([blogPostId])
+  @@index([userId])
 }
 
 model PlatformFeeRecord {
