@@ -35,7 +35,9 @@ export default async function CourseDetailPage({ params }) {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{course.title}</h1>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Badge variant="primary">{course.targetExam}</Badge>
+          {course.targetExams?.map((exam) => (
+            <Badge key={exam} variant="primary">{exam}</Badge>
+          )) || (course.targetExam && <Badge variant="primary">{course.targetExam}</Badge>)}
           <Badge>{course.courseType}</Badge>
           {course.classLevel && <Badge>{course.classLevel}</Badge>}
         </div>

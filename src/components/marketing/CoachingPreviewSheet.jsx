@@ -250,7 +250,7 @@ export function CoachingPreviewSheet({ slug, open, onClose }) {
                         >
                           <p className="font-medium text-foreground">{course.title}</p>
                           <p className="mt-0.5 text-muted">
-                            {course.targetExam}
+                            {course.targetExams?.join(", ") || course.targetExam}
                             {course.durationText && ` · ${course.durationText}`}
                           </p>
                         </li>

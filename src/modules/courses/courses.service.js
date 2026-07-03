@@ -24,7 +24,7 @@ export async function listCourses(filters = {}) {
   const where = {
     status: filters.status || "ACTIVE",
     ...(filters.coachingId && { coachingId: filters.coachingId }),
-    ...(filters.targetExam && { targetExam: filters.targetExam }),
+    ...(filters.targetExam && { targetExams: { has: filters.targetExam } }),
     ...(filters.classLevel && { classLevel: filters.classLevel }),
     ...(filters.courseType && { courseType: filters.courseType }),
   };

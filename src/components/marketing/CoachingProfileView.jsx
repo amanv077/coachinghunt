@@ -506,7 +506,7 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
                       <div className="flex-1">
                         <h3 className="font-semibold text-foreground">{course.title}</h3>
                         <p className="mt-1 text-sm text-muted">
-                          {course.targetExam}
+                          {course.targetExams?.join(", ") || course.targetExam}
                           {course.durationText && ` · ${course.durationText}`}
                         </p>
                         {course.description && (

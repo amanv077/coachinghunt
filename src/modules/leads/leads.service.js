@@ -14,7 +14,7 @@ export async function listLeads(coachingUserId, { leadStatus } = {}) {
       },
       include: {
         student: { include: { user: { select: { name: true, email: true, phone: true } } } },
-        course: { select: { title: true, targetExam: true } },
+        course: { select: { title: true, targetExams: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -22,7 +22,7 @@ export async function listLeads(coachingUserId, { leadStatus } = {}) {
       where: { coachingId: coaching.id },
       include: {
         student: { include: { user: { select: { name: true, email: true, phone: true } } } },
-        course: { select: { title: true, targetExam: true } },
+        course: { select: { title: true, targetExams: true } },
         demoSlot: { select: { demoDate: true, topic: true } },
       },
       orderBy: { createdAt: "desc" },

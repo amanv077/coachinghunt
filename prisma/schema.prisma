@@ -224,7 +224,7 @@ model Course {
   slug            String          @unique
   description     String?
   courseType      CourseType      @default(BATCH)
-  targetExam      String?
+  targetExams     String[]
   classLevel      String?
   subjectStream   String?
   facultySummary  String?
@@ -249,7 +249,6 @@ model Course {
   demoRequests    DemoRequest[]
 
   @@index([coachingId])
-  @@index([targetExam])
 }
 
 model DemoSlot {
