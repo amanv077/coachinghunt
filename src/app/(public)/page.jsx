@@ -11,6 +11,7 @@ import { BenefitsSection } from "@/components/marketing/BenefitsSection";
 import { FeaturedCoachings } from "@/components/marketing/FeaturedCoachings";
 import { TestimonialsSection } from "@/components/marketing/TestimonialsSection";
 import { CoachingCta } from "@/components/marketing/CoachingCta";
+import { StudentRecentlyViewedSection } from "@/components/student/StudentRecentlyViewedSection";
 
 export const metadata = {
   title: "Find & Book Demo Sessions with Top Coachings",
@@ -28,6 +29,9 @@ export default async function HomePage() {
   return (
     <>
       <HomepageHero stats={stats} />
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+        <StudentRecentlyViewedSection title="Continue exploring" />
+      </div>
       <ExamCategories counts={examCounts} />
       <HowItWorks />
       <FeaturedCoachings coachings={featured} />
