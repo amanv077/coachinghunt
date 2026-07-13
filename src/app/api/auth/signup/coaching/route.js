@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
 import { slugify } from "@/lib/utils/helpers";
 import { rateLimit } from "@/lib/utils/rate-limit";
+import { sendEmailVerification } from "@/modules/auth/verification.service";
 
 const schema = z.object({
   contactPersonName: z.string().min(2),
@@ -13,6 +14,9 @@ const schema = z.object({
   password: z.string().min(6),
   city: z.string().min(2),
   locality: z.string().min(2),
+  termsAccepted: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the Terms and Privacy Policy" }),
+  }),
 });
 
 export async function POST(request) {
@@ -24,7 +28,7 @@ export async function POST(request) {
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
-      return errorResponse("Validation failed", parsed.error.errors, 422);
+      return errorResponse(parsed.error.errors[0]?.message || "Validation failed", parsed.error.errors, 422);
     }
 
     const existing = await prisma.user.findUnique({
@@ -33,6 +37,13 @@ export async function POST(request) {
 
     if (existing) {
       return errorResponse("Email already registered", [], 409);
+    }
+
+    const phoneInUse = await prisma.user.findFirst({
+      where: { phone: parsed.data.phone },
+    });
+    if (phoneInUse) {
+      return errorResponse("This phone number is already registered to another account", [], 409);
     }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
@@ -57,6 +68,12 @@ export async function POST(request) {
       },
       include: { coachingProfile: true },
     });
+
+    try {
+      await sendEmailVerification(user);
+    } catch (err) {
+      console.error("Verification email failed:", err);
+    }
 
     return successResponse(
       { id: user.id, email: user.email, role: user.role },

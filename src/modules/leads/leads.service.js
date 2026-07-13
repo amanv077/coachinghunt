@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
+import { writeAuditLog } from "@/lib/audit/log";
+
+const VALID_FEE_STATUSES = ["PENDING", "PAID", "DISPUTED", "WAIVED"];
 
 export function getPlatformFeeAmount() {
   const amount = Number(process.env.PLATFORM_FEE_AMOUNT);
@@ -98,6 +101,15 @@ export async function updateLeadStatus(coachingUserId, demoRequestId, { leadStat
     });
   }
 
+  await writeAuditLog({
+    actorUserId: coachingUserId,
+    actorRole: "COACHING",
+    action: "LEAD_STATUS_UPDATED",
+    entityType: "DemoRequest",
+    entityId: demoRequestId,
+    metaJson: { leadStatus, coachingNotes },
+  });
+
   return updated;
 }
 
@@ -123,6 +135,15 @@ export async function updateBookingLeadStatus(coachingUserId, bookingId, { leadS
       enrolledByName: booking.student.user.name,
     });
   }
+
+  await writeAuditLog({
+    actorUserId: coachingUserId,
+    actorRole: "COACHING",
+    action: "BOOKING_LEAD_STATUS_UPDATED",
+    entityType: "Booking",
+    entityId: bookingId,
+    metaJson: { leadStatus },
+  });
 
   return updated;
 }
@@ -160,7 +181,11 @@ export async function listFeeRecords({ status } = {}) {
   });
 }
 
-export async function updateFeeRecordStatus(id, status) {
+export async function updateFeeRecordStatus(id, status, actorUserId) {
+  if (!VALID_FEE_STATUSES.includes(status)) {
+    throw new Error("Invalid fee status");
+  }
+
   const feeRecord = await prisma.platformFeeRecord.update({
     where: { id },
     data: { status },
@@ -171,6 +196,20 @@ export async function updateFeeRecordStatus(id, status) {
       where: { id: feeRecord.demoRequestId },
       data: { isPaidLead: true },
     });
+  }
+
+  if (actorUserId) {
+    const user = await prisma.user.findUnique({ where: { id: actorUserId } });
+    if (user) {
+      await writeAuditLog({
+        actorUserId,
+        actorRole: user.role,
+        action: "FEE_RECORD_STATUS_UPDATED",
+        entityType: "PlatformFeeRecord",
+        entityId: id,
+        metaJson: { status },
+      });
+    }
   }
 
   return feeRecord;

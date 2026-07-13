@@ -9,7 +9,7 @@ export async function PATCH(request, { params }) {
   try {
     const { id } = await params;
     const { status } = await request.json();
-    const record = await updateFeeRecordStatus(id, status);
+    const record = await updateFeeRecordStatus(id, status, auth.session.user.id);
     return successResponse(record, "Fee record updated");
   } catch (error) {
     return errorResponse(error.message, [], 400);

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
@@ -53,9 +54,9 @@ function ImagePlaceholderIcon({ className }) {
 }
 
 const logoSizes = {
-  sm: "h-14 w-14 text-lg",
-  md: "h-16 w-16 text-xl",
-  lg: "h-16 w-16 text-xl sm:h-20 sm:w-20 sm:text-2xl",
+  sm: { box: "h-14 w-14 text-lg", px: 56 },
+  md: { box: "h-16 w-16 text-xl", px: 64 },
+  lg: { box: "h-16 w-16 text-xl sm:h-20 sm:w-20 sm:text-2xl", px: 80 },
 };
 
 const coverGradients = {
@@ -71,6 +72,7 @@ const coverIconStyles = {
 export function CoachingLogo({ src, name, size = "sm", className }) {
   const [failed, setFailed] = useState(false);
   const showPlaceholder = !src || failed;
+  const sizeConfig = logoSizes[size];
 
   useEffect(() => {
     setFailed(false);
@@ -80,7 +82,7 @@ export function CoachingLogo({ src, name, size = "sm", className }) {
     <div
       className={cn(
         "relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-secondary font-bold text-white",
-        logoSizes[size],
+        sizeConfig.box,
         className
       )}
       aria-hidden={!name}
@@ -92,11 +94,13 @@ export function CoachingLogo({ src, name, size = "sm", className }) {
           <span className="relative z-1">{getCoachingInitials(name)}</span>
         </>
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={src}
           alt=""
+          width={sizeConfig.px}
+          height={sizeConfig.px}
           className="h-full w-full rounded-xl object-cover"
+          sizes={`${sizeConfig.px}px`}
           onError={() => setFailed(true)}
         />
       )}
@@ -128,11 +132,12 @@ export function CoachingCoverImage({ src, variant = "card", className }) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt=""
-      className={cn("absolute inset-0 h-full w-full object-cover", className)}
+      fill
+      className={cn("object-cover", className)}
+      sizes="(max-width: 768px) 100vw, 50vw"
       onError={() => setFailed(true)}
     />
   );
@@ -161,13 +166,16 @@ export function CoachingGalleryImage({ src, className, onClick }) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      className={cn("h-full w-full object-cover", className)}
-      onClick={onClick}
-      onError={() => setFailed(true)}
-    />
+    <div className={cn("relative h-full w-full", className)}>
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 50vw, 200px"
+        onClick={onClick}
+        onError={() => setFailed(true)}
+      />
+    </div>
   );
 }

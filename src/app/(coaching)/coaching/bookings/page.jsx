@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { BookingCardSkeletonList } from "@/components/ui/BookingCardSkeleton";
 import { DemoRequestCard } from "@/components/coaching/DemoRequestCard";
 import { RequestReviewButton } from "@/components/shared/RequestReviewButton";
+import { MarkNoShowButton } from "@/components/coaching/MarkNoShowButton";
 import { cn } from "@/lib/utils/cn";
 
 export default function CoachingBookingsPage() {
@@ -37,6 +38,10 @@ export default function CoachingBookingsPage() {
   function handleRequestUpdated(updated) {
     setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     loadData();
+  }
+
+  function handleBookingUpdated(updated) {
+    setBookings((prev) => prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b)));
   }
 
   return (
@@ -107,8 +112,11 @@ export default function CoachingBookingsPage() {
                       {b.status}
                     </Badge>
                     {(b.status === "ATTENDED" || b.status === "CONFIRMED") && (
-                      <div className="mt-2">
+                      <div className="mt-2 flex flex-col items-end gap-2">
                         <RequestReviewButton bookingId={b.id} sentAt={b.reviewInviteSentAt} />
+                        {b.status === "CONFIRMED" && (
+                          <MarkNoShowButton bookingId={b.id} onUpdated={handleBookingUpdated} />
+                        )}
                       </div>
                     )}
                   </div>

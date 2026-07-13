@@ -11,6 +11,7 @@ const items = [
   { href: "/admin/coachings", label: "Coachings" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/reports", label: "Reports" },
   { href: "/admin/qa", label: "Q&A" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/blog-queries", label: "Blog Queries" },

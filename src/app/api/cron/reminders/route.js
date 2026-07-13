@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { sendBookingReminderEmail } from "@/modules/notifications/email.service";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
+import { markPastBookingsAttended } from "@/modules/bookings/bookings.service";
 
 export async function GET(request) {
   const authHeader = request.headers.get("authorization");
@@ -48,5 +49,7 @@ export async function GET(request) {
     }
   }
 
-  return successResponse({ processed: bookings.length, sent });
+  const attendedCount = await markPastBookingsAttended();
+
+  return successResponse({ processed: bookings.length, sent, attendedCount });
 }

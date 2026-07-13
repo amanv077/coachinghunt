@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 import { useToast } from "@/components/ui/Toast";
 
+const STATUS_VARIANTS = {
+  PENDING: "warning",
+  PAID: "success",
+  DISPUTED: "danger",
+  WAIVED: "default",
+};
+
 export default function AdminFeeRecordsPage() {
   const { addToast } = useToast();
   const [records, setRecords] = useState([]);
@@ -19,16 +26,16 @@ export default function AdminFeeRecordsPage() {
       .finally(() => setFetching(false));
   }, []);
 
-  async function markPaid(id) {
+  async function updateStatus(id, status) {
     const res = await fetch(`/api/admin/fee-records/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "PAID" }),
+      body: JSON.stringify({ status }),
     });
     const data = await res.json();
     if (data.success) {
-      setRecords(records.map((r) => (r.id === id ? { ...r, status: "PAID" } : r)));
-      addToast("Marked as paid", "success");
+      setRecords((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+      addToast(`Marked as ${status.toLowerCase()}`, "success");
     }
   }
 
@@ -47,10 +54,20 @@ export default function AdminFeeRecordsPage() {
                 <p className="font-medium">{record.coaching.name}</p>
                 <p className="text-sm text-muted">{record.enrolledByName || "Student"} · ₹{record.amount}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={record.status === "PAID" ? "success" : "warning"}>{record.status}</Badge>
-                {record.status !== "PAID" && (
-                  <Button size="sm" onClick={() => markPaid(record.id)}>Mark paid</Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={STATUS_VARIANTS[record.status] || "default"}>{record.status}</Badge>
+                {record.status === "PENDING" && (
+                  <>
+                    <Button size="sm" className="min-h-9" onClick={() => updateStatus(record.id, "PAID")}>Mark paid</Button>
+                    <Button size="sm" variant="secondary" className="min-h-9" onClick={() => updateStatus(record.id, "DISPUTED")}>Dispute</Button>
+                    <Button size="sm" variant="ghost" className="min-h-9" onClick={() => updateStatus(record.id, "WAIVED")}>Waive</Button>
+                  </>
+                )}
+                {record.status === "DISPUTED" && (
+                  <>
+                    <Button size="sm" className="min-h-9" onClick={() => updateStatus(record.id, "PAID")}>Resolve paid</Button>
+                    <Button size="sm" variant="ghost" className="min-h-9" onClick={() => updateStatus(record.id, "WAIVED")}>Waive</Button>
+                  </>
                 )}
               </div>
             </Card>

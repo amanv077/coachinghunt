@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
 import { generateBookingCode } from "@/lib/utils/helpers";
-import { sendBookingConfirmationEmail, sendCoachingNewBookingEmail } from "@/modules/notifications/email.service";
+import { sendBookingConfirmationEmail, sendCoachingNewBookingEmail, sendCoachingBookingCancelledEmail, sendCoachingBookingRescheduledEmail } from "@/modules/notifications/email.service";
 import { writeAuditLog } from "@/lib/audit/log";
+import { createDemoRequest } from "@/modules/demo-requests/demo-requests.service";
 
 export async function createBooking(studentUserId, demoSlotId) {
   const student = await prisma.studentProfile.findUnique({ where: { userId: studentUserId } });
@@ -90,14 +91,19 @@ export async function createBooking(studentUserId, demoSlotId) {
   return booking;
 }
 
-export async function cancelBooking(bookingId, studentUserId) {
+export async function cancelBooking(bookingId, studentUserId, options = {}) {
   const student = await prisma.studentProfile.findUnique({ where: { userId: studentUserId } });
   const booking = await prisma.booking.findFirst({
     where: { id: bookingId, studentId: student?.id, status: "CONFIRMED" },
+    include: {
+      demoSlot: true,
+      coaching: true,
+      student: { include: { user: true } },
+    },
   });
   if (!booking) throw new Error("Booking not found");
 
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     await tx.demoSlot.update({
       where: { id: booking.demoSlotId },
       data: {
@@ -105,7 +111,7 @@ export async function cancelBooking(bookingId, studentUserId) {
         status: "OPEN",
       },
     });
-    const updated = await tx.booking.update({
+    const result = await tx.booking.update({
       where: { id: bookingId },
       data: { status: "CANCELLED" },
     });
@@ -121,8 +127,23 @@ export async function cancelBooking(bookingId, studentUserId) {
       });
     }
 
-    return updated;
+    return result;
   });
+
+  if (!options.skipCoachingEmail) {
+    try {
+      const coachingUser = await prisma.user.findFirst({
+        where: { coachingProfile: { id: booking.coachingId } },
+        select: { email: true },
+      });
+      const coachingEmail = booking.coaching.email || coachingUser?.email;
+      await sendCoachingBookingCancelledEmail(booking, coachingEmail, options.reason);
+    } catch (err) {
+      console.error("Coaching booking cancelled email failed:", err);
+    }
+  }
+
+  return updated;
 }
 
 export async function getStudentBookings(userId) {
@@ -153,4 +174,107 @@ export async function getCoachingBookings(userId) {
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function rescheduleBooking(bookingId, studentUserId, { preferredDate, preferredTime, message }) {
+  const student = await prisma.studentProfile.findUnique({
+    where: { userId: studentUserId },
+    include: { user: true },
+  });
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, studentId: student?.id, status: "CONFIRMED" },
+    include: { demoSlot: true, coaching: true, course: true },
+  });
+  if (!booking) throw new Error("Booking not found");
+
+  if (!preferredDate) throw new Error("Preferred date is required");
+
+  const demoRequest = await createDemoRequest(studentUserId, {
+    coachingId: booking.coachingId,
+    courseId: booking.courseId,
+    preferredDate,
+    preferredTime: preferredTime || undefined,
+    message: message || "Reschedule requested by student",
+    isReschedule: true,
+  });
+
+  try {
+    await prisma.demoRequest.update({
+      where: { id: demoRequest.id },
+      data: { rescheduleOf: booking.id },
+    });
+
+    await cancelBooking(booking.id, studentUserId, { skipCoachingEmail: true });
+
+    try {
+      const coachingUser = await prisma.user.findFirst({
+        where: { coachingProfile: { id: booking.coachingId } },
+        select: { email: true },
+      });
+      const coachingEmail = booking.coaching.email || coachingUser?.email;
+      await sendCoachingBookingRescheduledEmail({
+        coachingEmail,
+        coachingName: booking.coaching.name,
+        studentName: student.user.name,
+        studentEmail: student.user.email,
+        oldBookingCode: booking.bookingCode,
+        preferredDate,
+        preferredTime,
+        message,
+      });
+    } catch (err) {
+      console.error("Coaching reschedule email failed:", err);
+    }
+  } catch (error) {
+    await prisma.demoRequest.update({
+      where: { id: demoRequest.id },
+      data: { status: "CANCELLED" },
+    });
+    throw error;
+  }
+
+  return prisma.demoRequest.findUnique({
+    where: { id: demoRequest.id },
+    include: {
+      coaching: { select: { name: true, slug: true } },
+      course: { select: { title: true } },
+    },
+  });
+}
+
+export async function markBookingNoShow(bookingId, coachingUserId) {
+  const coaching = await prisma.coachingProfile.findUnique({ where: { userId: coachingUserId } });
+  if (!coaching) throw new Error("Coaching profile not found");
+
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, coachingId: coaching.id, status: { in: ["CONFIRMED", "ATTENDED"] } },
+  });
+  if (!booking) throw new Error("Booking not found");
+
+  const updated = await prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: "NO_SHOW" },
+  });
+
+  await writeAuditLog({
+    actorUserId: coachingUserId,
+    actorRole: "COACHING",
+    action: "BOOKING_NO_SHOW",
+    entityType: "Booking",
+    entityId: bookingId,
+  });
+
+  return updated;
+}
+
+export async function markPastBookingsAttended() {
+  const now = new Date();
+  const result = await prisma.booking.updateMany({
+    where: {
+      status: "CONFIRMED",
+      demoSlot: { demoDate: { lt: now } },
+    },
+    data: { status: "ATTENDED" },
+  });
+  return result.count;
 }

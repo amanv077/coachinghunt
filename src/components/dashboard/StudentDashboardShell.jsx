@@ -33,6 +33,7 @@ export function StudentDashboardShell({ children }) {
       badge: compareList.length > 0 ? String(compareList.length) : null,
     },
     { href: "/student/bookings", label: "My Bookings", icon: <BookingsIcon /> },
+    { href: "/student/refer", label: "Refer & Earn", icon: <OffersIcon /> },
     { href: "/student/offers", label: "Offers", icon: <OffersIcon /> },
     { href: "/blog", label: "Blog", icon: <BlogIcon /> },
     { href: "/student/profile", label: "Profile", icon: <ProfileIcon /> },

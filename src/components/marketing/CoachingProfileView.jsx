@@ -10,6 +10,7 @@ import { ReviewForm } from "@/components/shared/ReviewForm";
 import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { QASection } from "@/components/shared/QASection";
+import { ReportContentButton } from "@/components/shared/ReportContentButton";
 import { PromoCodeChip } from "@/components/shared/PromoCodeChip";
 import { Button } from "@/components/ui/Button";
 import {
@@ -706,10 +707,18 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
                         <span className="font-medium text-foreground">
                           {review.student?.user?.name || "Student"}
                         </span>
-                        <Badge variant="primary">
-                          <StarIcon className="mr-0.5 inline h-3 w-3 text-warning" />
-                          {review.rating}/5
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="primary">
+                            <StarIcon className="mr-0.5 inline h-3 w-3 text-warning" />
+                            {review.rating}/5
+                          </Badge>
+                          {isLoggedIn && (
+                            <ReportContentButton
+                              reviewId={review.id}
+                              coachingId={coaching.id}
+                            />
+                          )}
+                        </div>
                       </div>
                       {review.comment && (
                         <p className="mt-2 text-sm leading-relaxed text-muted">{review.comment}</p>

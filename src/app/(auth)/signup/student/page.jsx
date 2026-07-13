@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { AuthInput } from "@/components/shared/AuthInput";
 import { Button } from "@/components/ui/Button";
 import { SignupRoleTabs } from "@/components/shared/SignupRoleTabs";
+import { TermsConsentCheckbox } from "@/components/shared/TermsConsentCheckbox";
 
 // Vector Icons
 const UserIcon = (props) => (
@@ -37,24 +38,40 @@ const LockIcon = (props) => (
 
 export default function StudentSignupPage() {
   const router = useRouter();
+  const [referralCode, setReferralCode] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setReferralCode(params.get("ref") || "");
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!termsAccepted) {
+      setError("You must accept the Terms and Privacy Policy");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     const res = await fetch("/api/auth/signup/student", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        termsAccepted: true,
+        referralCode: referralCode || undefined,
+      }),
     });
     const data = await res.json();
 
@@ -138,6 +155,12 @@ export default function StudentSignupPage() {
             icon={LockIcon}
             showPasswordToggle={true}
           />
+
+          <TermsConsentCheckbox checked={termsAccepted} onChange={setTermsAccepted} />
+
+          {referralCode && (
+            <p className="text-xs text-muted">Referred by code: <strong>{referralCode}</strong></p>
+          )}
 
           {error && (
             <motion.div

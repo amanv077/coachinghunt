@@ -1,10 +1,14 @@
 import { requireAuth } from "@/lib/auth/session";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
 import { createBooking, getStudentBookings, getCoachingBookings, cancelBooking } from "@/modules/bookings/bookings.service";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 export async function POST(request) {
   const auth = await requireAuth(["STUDENT"]);
   if (auth.error) return errorResponse(auth.error, [], auth.status);
+
+  const limited = rateLimit(request, "create-booking", 10, 15 * 60 * 1000);
+  if (limited) return errorResponse("Too many booking attempts. Try again later.", [], 429);
 
   try {
     const { demoSlotId } = await request.json();

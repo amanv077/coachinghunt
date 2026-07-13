@@ -33,6 +33,7 @@ export const authOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          emailVerifiedAt: user.emailVerifiedAt,
         };
       },
     }),
@@ -50,6 +51,7 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.emailVerifiedAt = user.emailVerifiedAt;
       }
       return token;
     },
@@ -57,6 +59,7 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.emailVerifiedAt = token.emailVerifiedAt;
       }
       return session;
     },

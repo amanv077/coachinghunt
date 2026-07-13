@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ProfileCompletenessBar } from "@/components/coaching/ProfileCompletenessBar";
+import { GetFeaturedCard } from "@/components/coaching/GetFeaturedCard";
+import { EmailVerifyBanner } from "@/components/shared/EmailVerifyBanner";
 
 export default async function CoachingDashboardPage() {
   const session = await getSession();
@@ -24,6 +26,9 @@ export default async function CoachingDashboardPage() {
       {data.completeness && (
         <ProfileCompletenessBar completeness={data.completeness} />
       )}
+
+      <EmailVerifyBanner />
+      <GetFeaturedCard />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><p className="text-sm text-muted">Active Courses</p><p className="text-2xl font-bold">{data.courseCount}</p></Card>

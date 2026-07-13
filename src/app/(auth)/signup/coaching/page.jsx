@@ -10,6 +10,7 @@ import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { SignupRoleTabs } from "@/components/shared/SignupRoleTabs";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
+import { TermsConsentCheckbox } from "@/components/shared/TermsConsentCheckbox";
 
 // Vector Icons
 const UserIcon = (props) => (
@@ -63,6 +64,7 @@ export default function CoachingSignupPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   function validateStep1() {
     if (!form.contactPersonName.trim()) {
@@ -116,6 +118,10 @@ export default function CoachingSignupPage() {
       setError("Please enter your locality.");
       return;
     }
+    if (!termsAccepted) {
+      setError("You must accept the Terms and Privacy Policy");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -123,7 +129,7 @@ export default function CoachingSignupPage() {
     const res = await fetch("/api/auth/signup/coaching", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, termsAccepted: true }),
     });
     const data = await res.json();
     setLoading(false);
@@ -285,6 +291,7 @@ export default function CoachingSignupPage() {
                   required
                   icon={MapPinIcon}
                 />
+                <TermsConsentCheckbox checked={termsAccepted} onChange={setTermsAccepted} />
               </motion.div>
             )}
           </AnimatePresence>

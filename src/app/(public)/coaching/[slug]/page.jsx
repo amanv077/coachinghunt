@@ -6,6 +6,7 @@ import { getStudentBookings } from "@/modules/bookings/bookings.service";
 import { studentCanReviewCoaching } from "@/modules/reviews/reviews.service";
 import { listActiveOffers } from "@/modules/offers/offers.service";
 import { CoachingProfileView } from "@/components/marketing/CoachingProfileView";
+import { TrackRecentlyViewed } from "@/components/shared/TrackRecentlyViewed";
 import { buildOgMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata({ params }) {
@@ -48,13 +49,25 @@ export default async function CoachingDetailPage({ params }) {
   }
 
   return (
-    <CoachingProfileView
-      coaching={coaching}
-      session={session}
-      isSaved={isSaved}
-      studentBookings={studentBookings}
-      canReview={canReview}
-      offers={offers}
-    />
+    <>
+      <TrackRecentlyViewed
+        coaching={{
+          id: coaching.id,
+          slug: coaching.slug,
+          name: coaching.name,
+          city: coaching.city,
+          logoUrl: coaching.logoUrl,
+          avgRating: coaching.avgRating,
+        }}
+      />
+      <CoachingProfileView
+        coaching={coaching}
+        session={session}
+        isSaved={isSaved}
+        studentBookings={studentBookings}
+        canReview={canReview}
+        offers={offers}
+      />
+    </>
   );
 }

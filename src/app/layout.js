@@ -20,6 +20,16 @@ export const metadata = {
   },
   description:
     "Discover offline coaching institutes, compare courses, and book demo sessions with confidence.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CoachingHunt",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2C4C9C",
 };
 
 export default async function RootLayout({ children }) {

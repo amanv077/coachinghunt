@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button";
 import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { CancelBookingButton } from "@/components/shared/CancelBookingButton";
 import { ProfileNudgeBanner } from "@/components/dashboard/ProfileNudgeBanner";
+import { EmailVerifyBanner } from "@/components/shared/EmailVerifyBanner";
+import { StudentRecentlyViewedSection } from "@/components/student/StudentRecentlyViewedSection";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { PromoCodeChip } from "@/components/shared/PromoCodeChip";
 import {
@@ -98,6 +100,10 @@ export default async function StudentDashboardPage() {
       </div>
 
       {profileIncomplete && <ProfileNudgeBanner />}
+
+      <EmailVerifyBanner />
+
+      <StudentRecentlyViewedSection title="Continue exploring" />
 
       {pendingRequestCount > 0 && (
         <Link href="/student/bookings" className="block">

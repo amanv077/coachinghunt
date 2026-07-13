@@ -101,3 +101,116 @@ export function coachingNewBookingTemplate({ coachingName, studentName, studentE
     </div>
   `;
 }
+
+export function studentDemoRequestResponseTemplate({
+  studentName,
+  coachingName,
+  status,
+  proposedDate,
+  proposedTime,
+  responseNote,
+  bookingCode,
+}) {
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  const statusLabels = {
+    APPROVED: "approved",
+    DECLINED: "declined",
+    RESCHEDULED: "rescheduled",
+    CANCELLED: "cancelled",
+  };
+  const statusLabel = statusLabels[status] || status.toLowerCase();
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2C4C9C;">Demo request ${statusLabel}</h2>
+      <p>Hi ${studentName},</p>
+      <p>Your demo request for <strong>${coachingName}</strong> has been <strong>${statusLabel}</strong>.</p>
+      ${proposedDate ? `<p><strong>Scheduled date:</strong> ${new Date(proposedDate).toLocaleDateString()}</p>` : ""}
+      ${proposedTime ? `<p><strong>Time:</strong> ${proposedTime}</p>` : ""}
+      ${bookingCode ? `<p><strong>Booking code:</strong> ${bookingCode}</p>` : ""}
+      ${responseNote ? `<p><strong>Note from coaching:</strong> ${responseNote}</p>` : ""}
+      <p><a href="${appUrl}/student/bookings" style="color: #2C4C9C;">View your bookings</a></p>
+    </div>
+  `;
+}
+
+export function coachingBookingCancelledTemplate({
+  coachingName,
+  studentName,
+  studentEmail,
+  bookingCode,
+  topic,
+  demoDate,
+  startTime,
+  reason,
+}) {
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2C4C9C;">Booking cancelled</h2>
+      <p>A student cancelled their demo booking for <strong>${coachingName}</strong>.</p>
+      <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+        <p><strong>Booking code:</strong> ${bookingCode}</p>
+        <p><strong>Student:</strong> ${studentName}</p>
+        <p><strong>Email:</strong> ${studentEmail}</p>
+        <p><strong>Topic:</strong> ${topic}</p>
+        <p><strong>Date:</strong> ${new Date(demoDate).toLocaleDateString()}</p>
+        <p><strong>Time:</strong> ${startTime}</p>
+        ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
+      </div>
+      <p><a href="${appUrl}/coaching/bookings" style="color: #2C4C9C;">View bookings</a></p>
+    </div>
+  `;
+}
+
+export function coachingBookingRescheduledTemplate({
+  coachingName,
+  studentName,
+  studentEmail,
+  oldBookingCode,
+  preferredDate,
+  preferredTime,
+  message,
+}) {
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2C4C9C;">Reschedule request</h2>
+      <p>A student requested to reschedule their demo for <strong>${coachingName}</strong>.</p>
+      <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
+        <p><strong>Previous booking:</strong> ${oldBookingCode}</p>
+        <p><strong>Student:</strong> ${studentName}</p>
+        <p><strong>Email:</strong> ${studentEmail}</p>
+        <p><strong>New preferred date:</strong> ${new Date(preferredDate).toLocaleDateString()}</p>
+        ${preferredTime ? `<p><strong>Preferred time:</strong> ${preferredTime}</p>` : ""}
+        ${message ? `<p><strong>Message:</strong> ${message}</p>` : ""}
+      </div>
+      <p><a href="${appUrl}/coaching/bookings" style="color: #2C4C9C;">Respond in your dashboard</a></p>
+    </div>
+  `;
+}
+
+export function coachingDemoRequestReminderTemplate({ coachingName, pendingCount }) {
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2C4C9C;">Pending demo requests</h2>
+      <p>You have <strong>${pendingCount}</strong> unanswered demo request${pendingCount === 1 ? "" : "s"} for <strong>${coachingName}</strong>.</p>
+      <p>Students are waiting for your response. Please approve, decline, or propose a new time.</p>
+      <p><a href="${appUrl}/coaching/bookings" style="color: #2C4C9C;">Respond now</a></p>
+    </div>
+  `;
+}
+
+export function studentDemoRequestExpiredTemplate({ studentName, coachingName }) {
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2C4C9C;">Demo request expired</h2>
+      <p>Hi ${studentName},</p>
+      <p>Your demo request for <strong>${coachingName}</strong> expired because it was not answered within 5 days.</p>
+      <p>You can submit a new request or book an available slot directly.</p>
+      <p><a href="${appUrl}/search" style="color: #2C4C9C;">Find coachings</a></p>
+    </div>
+  `;
+}

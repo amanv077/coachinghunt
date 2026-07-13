@@ -7,6 +7,10 @@ export async function GET(request) {
   if (auth.error) return errorResponse(auth.error, [], auth.status);
 
   const { searchParams } = new URL(request.url);
-  const data = await listCoachingsAdmin(Number(searchParams.get("page") || 1));
+  const data = await listCoachingsAdmin(
+    Number(searchParams.get("page") || 1),
+    Number(searchParams.get("limit") || 20),
+    searchParams.get("search") || ""
+  );
   return successResponse(data);
 }

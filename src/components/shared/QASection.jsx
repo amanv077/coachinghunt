@@ -70,7 +70,12 @@ export function QASection({ coachingId, isLoggedIn, isStudent }) {
         <div className="space-y-3">
           {items.map((item) => (
             <Card key={item.id} className="!p-4">
-              <p className="font-medium text-foreground">Q: {item.question}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium text-foreground">Q: {item.question}</p>
+                {isLoggedIn && (
+                  <ReportContentButton qaId={item.id} coachingId={coachingId} />
+                )}
+              </div>
               {item.answer && (
                 <p className="mt-2 text-sm leading-relaxed text-muted">A: {item.answer}</p>
               )}

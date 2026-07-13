@@ -69,10 +69,20 @@ export async function getAdminAnalytics() {
   };
 }
 
-export async function listUsers(page = 1, limit = 20) {
+export async function listUsers(page = 1, limit = 20, search = "") {
   const skip = (page - 1) * limit;
+  const where = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {};
+
   const [items, total] = await Promise.all([
     prisma.user.findMany({
+      where,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -85,23 +95,41 @@ export async function listUsers(page = 1, limit = 20) {
         createdAt: true,
       },
     }),
-    prisma.user.count(),
+    prisma.user.count({ where }),
   ]);
-  return { items, total, page, limit };
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function listCoachingsAdmin(page = 1, limit = 20) {
+export async function listCoachingsAdmin(page = 1, limit = 20, search = "") {
   const skip = (page - 1) * limit;
+  const where = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
+          { user: { email: { contains: search, mode: "insensitive" } } },
+        ],
+      }
+    : {};
+
   const [items, total] = await Promise.all([
     prisma.coachingProfile.findMany({
+      where,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, isActive: true } } },
     }),
-    prisma.coachingProfile.count(),
+    prisma.coachingProfile.count({ where }),
   ]);
-  return { items, total, page, limit };
+
+  const now = new Date();
+  const normalized = items.map((coaching) => ({
+    ...coaching,
+    isFeatured: coaching.isFeatured && (!coaching.featuredUntil || coaching.featuredUntil > now),
+  }));
+
+  return { items: normalized, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function updateCoachingVerification(id, verificationStatus) {
@@ -119,21 +147,46 @@ export async function updateUserStatus(id, isActive) {
 }
 
 export async function getStudentDashboard(userId) {
-  const student = await prisma.studentProfile.findUnique({ where: { userId } });
+  const student = await prisma.studentProfile.findUnique({
+    where: { userId },
+    include: { savedCoachings: { include: { coaching: true } } },
+  });
   if (!student) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const savedCoachingIds = student.savedCoachings.map((s) => s.coachingId);
+  const savedExams = [...new Set(student.savedCoachings.flatMap((s) => s.coaching.targetExams || []))];
+  const savedCities = [...new Set(student.savedCoachings.map((s) => s.coaching.city).filter(Boolean))];
+
+  const [bookedCoachingIds, reviewedCoachingIds] = await Promise.all([
+    prisma.booking.findMany({
+      where: { studentId: student.id },
+      select: { coachingId: true },
+    }).then((rows) => rows.map((r) => r.coachingId)),
+    prisma.review.findMany({
+      where: { studentId: student.id },
+      select: { coachingId: true },
+    }).then((rows) => rows.map((r) => r.coachingId)),
+  ]);
+
+  const excludeIds = [...new Set([...savedCoachingIds, ...bookedCoachingIds])];
+
+  const targetExams = [...new Set([...(student.targetExams || []), ...savedExams])];
+  const cities = [...new Set([student.city, ...savedCities].filter(Boolean))];
+
   const personalisedWhere = {
     listingStatus: "ACTIVE",
-    ...(student.city ? { city: { contains: student.city, mode: "insensitive" } } : {}),
-    ...(student.targetExams?.length > 0
-      ? { targetExams: { hasSome: student.targetExams } }
+    verificationStatus: "VERIFIED",
+    id: { notIn: excludeIds },
+    ...(cities.length > 0
+      ? { OR: cities.map((city) => ({ city: { contains: city, mode: "insensitive" } })) }
       : {}),
+    ...(targetExams.length > 0 ? { targetExams: { hasSome: targetExams } } : {}),
   };
 
-  const [upcomingBookings, attendedCount, offers, personalisedCoachings] = await Promise.all([
+  const [upcomingBookings, attendedCount, allOffers, personalisedCoachings, referralCount] = await Promise.all([
     prisma.booking.findMany({
       where: {
         studentId: student.id,
@@ -149,26 +202,44 @@ export async function getStudentDashboard(userId) {
     }),
     prisma.offer.findMany({
       where: { status: "ACTIVE", validTill: { gte: new Date() } },
-      take: 4,
-      include: { coaching: { select: { name: true, slug: true } } },
+      include: { coaching: { select: { name: true, slug: true, id: true } } },
+      orderBy: { validTill: "asc" },
     }),
     prisma.coachingProfile.findMany({
       where: personalisedWhere,
       orderBy: { avgRating: "desc" },
       take: 4,
     }),
+    prisma.referral.count({ where: { referrerId: student.id, status: "COMPLETED" } }),
   ]);
+
+  const savedOffers = allOffers.filter((o) => savedCoachingIds.includes(o.coachingId));
+  const otherOffers = allOffers.filter((o) => !savedCoachingIds.includes(o.coachingId));
+  const offers = [...savedOffers, ...otherOffers].slice(0, 4);
 
   let topCoachings = personalisedCoachings;
   if (topCoachings.length === 0) {
     topCoachings = await prisma.coachingProfile.findMany({
-      where: { listingStatus: "ACTIVE" },
+      where: {
+        listingStatus: "ACTIVE",
+        verificationStatus: "VERIFIED",
+        id: { notIn: excludeIds },
+      },
       orderBy: { avgRating: "desc" },
       take: 4,
     });
   }
 
-  return { profile: student, upcomingBookings, attendedCount, offers, topCoachings };
+  return {
+    profile: student,
+    upcomingBookings,
+    attendedCount,
+    offers,
+    topCoachings,
+    referralCount,
+    referralCode: student.referralCode,
+    reviewedCoachingIds,
+  };
 }
 
 export async function getCoachingDashboard(userId) {

@@ -18,13 +18,13 @@ export async function createReview(studentUserId, data) {
     where: {
       studentId: student.id,
       coachingId: data.coachingId,
-      status: { in: ["CONFIRMED", "ATTENDED"] },
+      status: "ATTENDED",
     },
     orderBy: { createdAt: "desc" },
   });
 
   if (!booking) {
-    throw new Error("You can only review coachings where you have attended or booked a demo");
+    throw new Error("You can only review coachings after attending a demo");
   }
 
   return prisma.review.create({
@@ -90,7 +90,7 @@ export async function studentCanReviewCoaching(studentUserId, coachingId) {
       where: {
         studentId: student.id,
         coachingId,
-        status: { in: ["CONFIRMED", "ATTENDED"] },
+        status: "ATTENDED",
       },
     }),
     prisma.review.findUnique({

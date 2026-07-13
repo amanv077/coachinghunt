@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { createBooking } from "@/modules/bookings/bookings.service";
 import { createDemoSlot } from "@/modules/demo-slots/demo-slots.service";
-import { sendCoachingDemoRequestEmail } from "@/modules/notifications/email.service";
+import { sendCoachingDemoRequestEmail, sendStudentDemoRequestResponseEmail } from "@/modules/notifications/email.service";
 import { computeAvgResponseHours } from "@/modules/coachings/coachings.service";
 
 const requestInclude = {
@@ -88,28 +88,30 @@ export async function createDemoRequest(studentUserId, data) {
   const preferredDate = data.preferredDate ? parseDateOnly(data.preferredDate) : null;
   if (!preferredDate) throw new Error("Preferred date is required");
 
-  const existingPending = await prisma.demoRequest.findFirst({
-    where: {
-      studentId: student.id,
-      coachingId: data.coachingId,
-      courseId: data.courseId || null,
-      status: "PENDING",
-    },
-  });
-  if (existingPending) {
-    throw new Error("You already have a pending request for this coaching");
-  }
+  if (!data.isReschedule) {
+    const existingPending = await prisma.demoRequest.findFirst({
+      where: {
+        studentId: student.id,
+        coachingId: data.coachingId,
+        courseId: data.courseId || null,
+        status: "PENDING",
+      },
+    });
+    if (existingPending) {
+      throw new Error("You already have a pending request for this coaching");
+    }
 
-  const existingRecent = await prisma.demoRequest.findFirst({
-    where: {
-      studentId: student.id,
-      coachingId: data.coachingId,
-      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-      status: { in: ["PENDING", "APPROVED"] },
-    },
-  });
-  if (existingRecent) {
-    throw new Error("You already submitted a demo request for this coaching recently");
+    const existingRecent = await prisma.demoRequest.findFirst({
+      where: {
+        studentId: student.id,
+        coachingId: data.coachingId,
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        status: { in: ["PENDING", "APPROVED"] },
+      },
+    });
+    if (existingRecent) {
+      throw new Error("You already submitted a demo request for this coaching recently");
+    }
   }
 
   const demoRequest = await prisma.demoRequest.create({
@@ -221,6 +223,11 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
       include: requestInclude,
     });
     await refreshResponseHours(coaching.id);
+    try {
+      await sendStudentDemoRequestResponseEmail(updated);
+    } catch (err) {
+      console.error("Student demo request decline email failed:", err);
+    }
     return updated;
   }
 
@@ -257,6 +264,11 @@ export async function respondToDemoRequest(requestId, coachingUserId, payload) {
     include: requestInclude,
   });
   await refreshResponseHours(coaching.id);
+  try {
+    await sendStudentDemoRequestResponseEmail(updated);
+  } catch (err) {
+    console.error("Student demo request response email failed:", err);
+  }
   return updated;
 }
 

@@ -9,7 +9,6 @@ export function BookDemoButton({ demoSlotId, disabled }) {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   async function handleBook() {
     if (!session) {
@@ -18,7 +17,6 @@ export function BookDemoButton({ demoSlotId, disabled }) {
     }
 
     setLoading(true);
-    setMessage("");
 
     const res = await fetch("/api/bookings", {
       method: "POST",
@@ -29,19 +27,15 @@ export function BookDemoButton({ demoSlotId, disabled }) {
     setLoading(false);
 
     if (data.success) {
-      setMessage(`Booked! Code: ${data.data.bookingCode}`);
-      router.refresh();
+      router.push("/student/bookings?booked=1");
     } else {
-      setMessage(data.message);
+      alert(data.message || "Booking failed");
     }
   }
 
   return (
-    <div>
-      <Button size="sm" onClick={handleBook} loading={loading} disabled={disabled}>
-        Book Demo
-      </Button>
-      {message && <p className="mt-1 text-xs text-muted">{message}</p>}
-    </div>
+    <Button size="sm" onClick={handleBook} loading={loading} disabled={disabled} className="min-h-9">
+      Book Demo
+    </Button>
   );
 }
