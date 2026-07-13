@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
 import { slugify } from "@/lib/utils/helpers";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 const schema = z.object({
   contactPersonName: z.string().min(2),
@@ -15,6 +16,9 @@ const schema = z.object({
 });
 
 export async function POST(request) {
+  const limited = rateLimit(request, "signup-coaching", 5, 15 * 60 * 1000);
+  if (limited) return errorResponse("Too many signup attempts. Try again later.", [], 429);
+
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

@@ -1,4 +1,9 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { getDashboardPath } from "@/lib/auth/dashboard";
+import { getLoginHref } from "@/lib/auth/login";
+import { getSession } from "@/lib/auth/session";
 
 const items = [
   { href: "/admin/dashboard", label: "Overview" },
@@ -13,7 +18,19 @@ const items = [
   { href: "/admin/audit-logs", label: "Audit Logs" },
 ];
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+  const session = await getSession();
+
+  if (!session?.user) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") || "/admin/dashboard";
+    redirect(getLoginHref(pathname));
+  }
+
+  if (session.user.role !== "ADMIN") {
+    redirect(getDashboardPath(session.user.role) || "/");
+  }
+
   return (
     <DashboardShell items={items} title="Admin">
       {children}

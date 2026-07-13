@@ -91,3 +91,12 @@ export function OffersIcon() {
     </svg>
   );
 }
+
+export function BillingIcon() {
+  return (
+    <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </svg>
+  );
+}

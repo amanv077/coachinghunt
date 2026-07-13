@@ -56,6 +56,7 @@ export async function listPublicCoachings({
   subject,
   targetExam,
   maxFee,
+  mode,
   page = 1,
   limit = 12,
   sort = "newest",
@@ -63,10 +64,12 @@ export async function listPublicCoachings({
   const now = new Date();
   const where = {
     listingStatus: "ACTIVE",
+    verificationStatus: "VERIFIED",
     ...(city && { city: { contains: city, mode: "insensitive" } }),
     ...(locality && { locality: { contains: locality, mode: "insensitive" } }),
     ...(targetExam && { targetExams: { has: targetExam } }),
     ...(subject && { subjects: { has: subject } }),
+    ...(mode && { mode }),
     ...(maxFee && {
       courses: {
         some: {
@@ -116,7 +119,7 @@ export async function listPublicCoachings({
 
 export async function getExamCoachingCounts() {
   const coachings = await prisma.coachingProfile.findMany({
-    where: { listingStatus: "ACTIVE" },
+    where: { listingStatus: "ACTIVE", verificationStatus: "VERIFIED" },
     select: { targetExams: true },
   });
 
@@ -131,7 +134,7 @@ export async function getExamCoachingCounts() {
 
 export async function getCityExamCombos() {
   const coachings = await prisma.coachingProfile.findMany({
-    where: { listingStatus: "ACTIVE", city: { not: null } },
+    where: { listingStatus: "ACTIVE", verificationStatus: "VERIFIED", city: { not: null } },
     select: { city: true, targetExams: true },
   });
 
@@ -163,6 +166,7 @@ export async function getCoachingBySlugOrId(identifier, isAuthenticated = false)
     where: {
       OR: [{ id: identifier }, { slug: identifier }],
       listingStatus: { in: isAuthenticated ? ["ACTIVE", "DRAFT", "PAUSED"] : ["ACTIVE"] },
+      ...(isAuthenticated ? {} : { verificationStatus: "VERIFIED" }),
     },
     include: {
       courses: { where: { status: "ACTIVE" } },
@@ -281,16 +285,60 @@ export async function computeAvgResponseHours(coachingId) {
   return Math.round((totalHours / requests.length) * 10) / 10;
 }
 
+const COACHING_PROFILE_EDITABLE_FIELDS = [
+  "name",
+  "tagline",
+  "description",
+  "foundedYear",
+  "phone",
+  "alternatePhone",
+  "email",
+  "website",
+  "mode",
+  "category",
+  "targetExams",
+  "subjects",
+  "facilities",
+  "logoUrl",
+  "coverImageUrl",
+  "galleryImages",
+  "city",
+  "locality",
+  "addressLine1",
+  "addressLine2",
+  "pincode",
+  "latitude",
+  "longitude",
+  "videoUrl",
+  "facultyProfiles",
+  "achievementsText",
+  "listingStatus",
+];
+
+function pickCoachingProfileFields(data) {
+  const picked = {};
+  for (const key of COACHING_PROFILE_EDITABLE_FIELDS) {
+    if (data[key] !== undefined) picked[key] = data[key];
+  }
+  return picked;
+}
+
 export async function updateCoachingProfile(userId, data) {
   const profile = await prisma.coachingProfile.findUnique({ where: { userId } });
   if (!profile) throw new Error("Profile not found");
+
+  const safeData = pickCoachingProfileFields(data);
+
+  if (safeData.listingStatus === "ACTIVE" && profile.verificationStatus !== "VERIFIED") {
+    throw new Error("Your institute must be verified by admin before going live in search");
+  }
 
   return prisma.coachingProfile
     .update({
       where: { userId },
       data: {
-        ...data,
-        ...(data.name && !data.slug && { slug: slugify(data.name) + "-" + profile.id.slice(-6) }),
+        ...safeData,
+        ...(safeData.name && { slug: slugify(safeData.name) + "-" + profile.id.slice(-6) }),
       },
       include: {
         _count: { select: { courses: true, demoSlots: true } },
@@ -310,10 +358,10 @@ export async function updateCoachingProfile(userId, data) {
 
 export async function getPlatformStats() {
   const [coachingCount, bookingCount, cities] = await Promise.all([
-    prisma.coachingProfile.count({ where: { listingStatus: "ACTIVE" } }),
+    prisma.coachingProfile.count({ where: { listingStatus: "ACTIVE", verificationStatus: "VERIFIED" } }),
     prisma.booking.count({ where: { status: "CONFIRMED" } }),
     prisma.coachingProfile.findMany({
-      where: { listingStatus: "ACTIVE", city: { not: null } },
+      where: { listingStatus: "ACTIVE", verificationStatus: "VERIFIED", city: { not: null } },
       select: { city: true },
       distinct: ["city"],
     }),
@@ -333,7 +381,8 @@ export async function getFeaturedReviews(limit = 3) {
     take: limit,
     include: {
       student: { include: { user: { select: { name: true } } } },
-      coaching: { select: { name: true, city: true, targetExams: true } },
+      coaching: { select: { name: true, city: true, targetExams: true, slug: true } },
+      booking: { select: { id: true } },
     },
   });
 }
@@ -343,6 +392,7 @@ export async function getFeaturedCoachings(limit = 6) {
   const rows = await prisma.coachingProfile.findMany({
     where: {
       listingStatus: "ACTIVE",
+      verificationStatus: "VERIFIED",
       isFeatured: true,
       OR: [{ featuredUntil: null }, { featuredUntil: { gte: now } }],
     },

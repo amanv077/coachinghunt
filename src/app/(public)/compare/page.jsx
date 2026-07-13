@@ -31,7 +31,7 @@ export default async function ComparePage({ searchParams }) {
   }
 
   const coachings = await prisma.coachingProfile.findMany({
-    where: { id: { in: ids }, listingStatus: "ACTIVE" },
+    where: { id: { in: ids }, listingStatus: "ACTIVE", verificationStatus: "VERIFIED" },
     include: {
       _count: {
         select: {
@@ -111,7 +111,31 @@ export default async function ComparePage({ searchParams }) {
         </Link>
       </div>
 
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-8 space-y-4 md:hidden">
+        {ordered.map((coaching) => (
+          <Card key={coaching.id} className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold text-foreground">{coaching.name}</p>
+                {coaching.verificationStatus === "VERIFIED" && <Badge variant="success" className="mt-2">Verified</Badge>}
+              </div>
+              <Link href={`/coaching/${coaching.slug}`}>
+                <Button size="sm" className="min-h-9">View</Button>
+              </Link>
+            </div>
+            {rows.map((row) => (
+              <div key={row.label} className="flex justify-between gap-4 border-t border-border pt-2 text-sm">
+                <span className="text-muted">{row.label}</span>
+                <span className="text-right font-medium text-foreground">
+                  {row.values[ordered.indexOf(coaching)]}
+                </span>
+              </div>
+            ))}
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 hidden overflow-x-auto md:block">
         <table className="min-w-full border-collapse">
           <thead>
             <tr>

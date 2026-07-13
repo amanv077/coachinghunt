@@ -10,6 +10,7 @@ import { ReviewForm } from "@/components/shared/ReviewForm";
 import { SaveCoachingButton } from "@/components/shared/SaveCoachingButton";
 import { CompareCoachingButton } from "@/components/shared/CompareCoachingButton";
 import { QASection } from "@/components/shared/QASection";
+import { PromoCodeChip } from "@/components/shared/PromoCodeChip";
 import { Button } from "@/components/ui/Button";
 import {
   CoachingCoverImage,
@@ -22,6 +23,7 @@ const sections = [
   { id: "overview", label: "Overview" },
   { id: "courses", label: "Courses" },
   { id: "demos", label: "Demos" },
+  { id: "offers", label: "Offers" },
   { id: "qa", label: "Q&A" },
   { id: "reviews", label: "Reviews" },
 ];
@@ -145,7 +147,7 @@ function GalleryStrip({ images }) {
   );
 }
 
-export function CoachingProfileView({ coaching, session, isSaved = false, studentBookings = [] }) {
+export function CoachingProfileView({ coaching, session, isSaved = false, studentBookings = [], canReview = false, offers = [] }) {
   const [activeSection, setActiveSection] = useState("overview");
   const isLoggedIn = !!session?.user;
   const isStudent = session?.user?.role === "STUDENT";
@@ -650,6 +652,25 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
               )}
             </section>
 
+            {/* Offers */}
+            {offers.length > 0 && (
+              <section className="space-y-4">
+                <SectionHeading id="offers" title="Offers & discounts" subtitle="Limited-time deals from this institute" />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {offers.map((offer) => (
+                    <Card key={offer.id}>
+                      <p className="font-semibold text-foreground">{offer.title}</p>
+                      {offer.description && <p className="mt-1 text-sm text-muted">{offer.description}</p>}
+                      <p className="mt-2 text-xs text-muted">
+                        Valid till {new Date(offer.validTill).toLocaleDateString()}
+                      </p>
+                      <PromoCodeChip code={offer.promoCode} />
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Q&A */}
             <section className="space-y-4">
               <SectionHeading id="qa" title="Questions & answers" subtitle="Ask the coaching directly" />
@@ -668,8 +689,13 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
                 }
               />
 
-              {isStudent && (
+              {isStudent && canReview && (
                 <ReviewForm coachingId={coaching.id} />
+              )}
+              {isStudent && !canReview && (
+                <Card className="text-sm text-muted">
+                  Book and attend a demo to leave a verified review.
+                </Card>
               )}
 
               {coaching.reviews?.length > 0 ? (
@@ -797,7 +823,7 @@ export function CoachingProfileView({ coaching, session, isSaved = false, studen
       </div>
 
       {/* Mobile sticky CTA */}
-      <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-white p-4 md:hidden">
+      <div className="fixed bottom-0 inset-x-0 z-[60] border-t border-border bg-white p-4 pb-safe md:hidden">
         {openDemos.length > 0 ? (
           <Button className="min-h-11 w-full" size="lg" onClick={() => scrollToSection("demos")}>
             {isLoggedIn ? "Book free demo" : "View demo slots"}

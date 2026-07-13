@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
+const DISMISS_KEY = "ch-profile-nudge-dismissed";
+
 export function ProfileNudgeBanner() {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
+  }, []);
+
+  function handleDismiss() {
+    localStorage.setItem(DISMISS_KEY, "1");
+    setDismissed(true);
+  }
 
   if (dismissed) return null;
 
@@ -24,7 +35,7 @@ export function ProfileNudgeBanner() {
         <Button
           variant="ghost"
           className="w-full min-h-11 sm:w-auto"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
         >
           Dismiss
         </Button>

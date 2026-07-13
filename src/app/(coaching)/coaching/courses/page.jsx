@@ -38,6 +38,7 @@ export default function CoachingCoursesPage() {
   const [coachingId, setCoachingId] = useState("");
   const [coachingProfile, setCoachingProfile] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -51,6 +52,7 @@ export default function CoachingCoursesPage() {
     description: "",
     targetExams: [],
     fees: "",
+    discountedFees: "",
     durationText: "",
     scheduleSummary: "",
     courseType: "BATCH",
@@ -63,7 +65,7 @@ export default function CoachingCoursesPage() {
         if (d.success) {
           setCoachingId(d.data.id);
           setCoachingProfile(d.data);
-          return fetch(`/api/courses?coachingId=${d.data.id}`)
+          return fetch(`/api/courses?coachingId=${d.data.id}&includeAll=true`)
             .then((r) => r.json())
             .then((c) => c.success && setCourses(c.data));
         }
@@ -99,26 +101,69 @@ export default function CoachingCoursesPage() {
   async function handleCreate(e) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch("/api/courses", {
-      method: "POST",
+    const payload = {
+      ...form,
+      fees: form.fees ? Number(form.fees) : null,
+      discountedFees: form.discountedFees ? Number(form.discountedFees) : null,
+      status: "ACTIVE",
+    };
+    const res = await fetch(editingId ? `/api/courses/${editingId}` : "/api/courses", {
+      method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, fees: Number(form.fees), status: "ACTIVE" }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     setLoading(false);
     if (data.success) {
-      setCourses([data.data, ...courses]);
+      if (editingId) {
+        setCourses(courses.map((c) => (c.id === editingId ? data.data : c)));
+        setEditingId(null);
+      } else {
+        setCourses([data.data, ...courses]);
+      }
       setShowForm(false);
       setForm({
         title: "",
         description: "",
         targetExams: [],
         fees: "",
+        discountedFees: "",
         durationText: "",
         scheduleSummary: "",
         courseType: "BATCH",
       });
-      addToast("Course created successfully", "success");
+      addToast(editingId ? "Course updated" : "Course created successfully", "success");
+    } else {
+      addToast(data.message, "error");
+    }
+  }
+
+  function startEdit(course) {
+    setEditingId(course.id);
+    setShowForm(true);
+    setForm({
+      title: course.title || "",
+      description: course.description || "",
+      targetExams: course.targetExams || [],
+      fees: course.fees != null ? String(course.fees) : "",
+      discountedFees: course.discountedFees != null ? String(course.discountedFees) : "",
+      durationText: course.durationText || "",
+      scheduleSummary: course.scheduleSummary || "",
+      courseType: course.courseType || "BATCH",
+    });
+  }
+
+  async function toggleCourseStatus(course) {
+    const nextStatus = course.status === "ACTIVE" ? "ARCHIVED" : "ACTIVE";
+    const res = await fetch(`/api/courses/${course.id}`, {
+      method: nextStatus === "ARCHIVED" ? "DELETE" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: nextStatus === "ARCHIVED" ? undefined : JSON.stringify({ status: "ACTIVE" }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setCourses(courses.map((c) => (c.id === course.id ? data.data : c)));
+      addToast(nextStatus === "ARCHIVED" ? "Course archived" : "Course activated", "success");
     } else {
       addToast(data.message, "error");
     }
@@ -178,7 +223,7 @@ export default function CoachingCoursesPage() {
           <h1 className="text-2xl font-bold text-foreground">Courses & Batches</h1>
           <p className="text-sm text-muted mt-1">Manage the programs and schedules offered by your coaching institute.</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => { setShowForm(!showForm); setEditingId(null); }}>
           {showForm ? "Cancel" : "Add Course"}
         </Button>
       </div>
@@ -188,7 +233,7 @@ export default function CoachingCoursesPage() {
           {/* Manual Form (Col-span 2) */}
           <div className="lg:col-span-2">
             <Card className="p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-foreground">Create Course Manually</h2>
+              <h2 className="mb-4 text-lg font-bold text-foreground">{editingId ? "Edit Course" : "Create Course Manually"}</h2>
               <form onSubmit={handleCreate} className="space-y-4">
                 <Input
                   label="Title"
@@ -219,6 +264,13 @@ export default function CoachingCoursesPage() {
                     onChange={(e) => setForm({ ...form, fees: e.target.value })}
                     placeholder="e.g. 45000"
                   />
+                  <Input
+                    label="Discounted fees (INR)"
+                    type="number"
+                    value={form.discountedFees}
+                    onChange={(e) => setForm({ ...form, discountedFees: e.target.value })}
+                    placeholder="Optional"
+                  />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
@@ -244,7 +296,7 @@ export default function CoachingCoursesPage() {
                 </Select>
                 <div className="pt-2">
                   <Button type="submit" loading={loading} className="w-full sm:w-auto">
-                    Create Course
+                    {editingId ? "Save changes" : "Create Course"}
                   </Button>
                 </div>
               </form>
@@ -364,11 +416,21 @@ export default function CoachingCoursesPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center justify-between sm:flex-col sm:items-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0">
+                <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0">
                   <p className="text-2xl font-extrabold text-secondary">
-                    ₹{c.fees != null ? c.fees.toLocaleString() : "0"}
+                    ₹{(c.discountedFees ?? c.fees) != null ? (c.discountedFees ?? c.fees).toLocaleString() : "0"}
                   </p>
-                  <Badge variant="outline" className="text-xs">{c.courseType === "BATCH" ? "Batch Mode" : "Self-paced / Regular"}</Badge>
+                  {c.discountedFees != null && c.fees != null && (
+                    <p className="text-xs text-muted line-through">₹{c.fees.toLocaleString()}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="secondary" size="sm" className="min-h-10" onClick={() => startEdit(c)}>
+                      Edit
+                    </Button>
+                    <Button type="button" variant="secondary" size="sm" className="min-h-10" onClick={() => toggleCourseStatus(c)}>
+                      {c.status === "ACTIVE" ? "Archive" : "Activate"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>

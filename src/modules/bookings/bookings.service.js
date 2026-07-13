@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { generateBookingCode } from "@/lib/utils/helpers";
-import { sendBookingConfirmationEmail } from "@/modules/notifications/email.service";
+import { sendBookingConfirmationEmail, sendCoachingNewBookingEmail } from "@/modules/notifications/email.service";
 import { writeAuditLog } from "@/lib/audit/log";
 
 export async function createBooking(studentUserId, demoSlotId) {
@@ -55,6 +55,12 @@ export async function createBooking(studentUserId, demoSlotId) {
 
   try {
     await sendBookingConfirmationEmail(booking);
+    const coachingUser = await prisma.user.findFirst({
+      where: { coachingProfile: { id: slot.coachingId } },
+      select: { email: true },
+    });
+    const coachingEmail = booking.coaching.email || coachingUser?.email;
+    await sendCoachingNewBookingEmail(booking, coachingEmail);
     await prisma.booking.update({
       where: { id: booking.id },
       data: { emailStatus: "SENT" },

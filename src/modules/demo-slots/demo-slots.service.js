@@ -60,7 +60,11 @@ export async function listDemoSlots(filters = {}) {
     ...(filters.courseId && { courseId: filters.courseId }),
     ...(filters.coachingId && { coachingId: filters.coachingId }),
     ...(filters.city && { coaching: { city: { contains: filters.city, mode: "insensitive" } } }),
-    status: filters.status || { in: ["OPEN", "FULL"] },
+    ...(filters.includePast
+      ? filters.status
+        ? { status: filters.status }
+        : {}
+      : { status: filters.status || { in: ["OPEN", "FULL"] } }),
     ...(demoDateFilter && { demoDate: demoDateFilter }),
   };
 

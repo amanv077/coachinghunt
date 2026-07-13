@@ -5,10 +5,14 @@ import {
   getStudentDemoRequests,
   getCoachingDemoRequests,
 } from "@/modules/demo-requests/demo-requests.service";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 export async function POST(request) {
   const auth = await requireAuth(["STUDENT"]);
   if (auth.error) return errorResponse(auth.error, [], auth.status);
+
+  const limited = rateLimit(request, "demo-request", 10, 15 * 60 * 1000);
+  if (limited) return errorResponse("Too many demo requests. Try again later.", [], 429);
 
   try {
     const body = await request.json();

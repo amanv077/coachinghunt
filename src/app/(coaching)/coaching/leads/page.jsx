@@ -5,10 +5,17 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
 import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils/cn";
 
 const TABS = ["ALL", "NEW", "CONTACTED", "ENROLLED", "DROPPED"];
+
+function formatCourseLabel(course) {
+  if (!course) return "General inquiry";
+  const exams = course.targetExams?.join(", ");
+  return exams || course.title || "General inquiry";
+}
 
 export default function CoachingLeadsPage() {
   const { addToast } = useToast();
@@ -33,7 +40,7 @@ export default function CoachingLeadsPage() {
     loadData(activeTab);
   }, [activeTab]);
 
-  async function updateStatus(id, leadStatus) {
+  async function updateRequestStatus(id, leadStatus) {
     const res = await fetch(`/api/leads/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -47,6 +54,23 @@ export default function CoachingLeadsPage() {
       addToast(data.message, "error");
     }
   }
+
+  async function updateBookingStatus(id, leadStatus) {
+    const res = await fetch(`/api/leads/bookings/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadStatus }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      addToast("Booking lead updated", "success");
+      loadData(activeTab);
+    } else {
+      addToast(data.message, "error");
+    }
+  }
+
+  const hasLeads = requests.length > 0 || bookings.length > 0;
 
   return (
     <div>
@@ -72,42 +96,66 @@ export default function CoachingLeadsPage() {
       <div className="mt-6 space-y-3">
         {fetching ? (
           <DashboardListSkeleton count={5} />
+        ) : !hasLeads ? (
+          <EmptyState
+            title="No leads yet"
+            description="Demo requests and booked students will appear here. Mark enrolled students to generate platform fees."
+          />
         ) : (
           <>
             {requests.map((req) => (
-          <Card key={req.id} className="space-y-3">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-medium">{req.student.user.name}</p>
-                <p className="text-sm text-muted">{req.student.user.email} · {req.student.user.phone || "No phone"}</p>
-                <p className="text-sm text-muted">{req.course?.targetExam || req.course?.title || "General inquiry"}</p>
-              </div>
-              <Badge variant="primary">{req.leadStatus}</Badge>
-            </div>
-            <Select
-              label="Update status"
-              value={req.leadStatus}
-              onChange={(e) => updateStatus(req.id, e.target.value)}
-            >
-              {TABS.filter((t) => t !== "ALL").map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Select>
-            </Card>
-          ))}
-
-            {(activeTab === "ALL" || activeTab === "NEW") &&
-              bookings.map((b) => (
-                <Card key={b.id}>
-                  <div className="flex flex-wrap justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{b.student.user.name}</p>
-                      <p className="text-sm text-muted">{b.demoSlot.topic} · {new Date(b.demoSlot.demoDate).toLocaleDateString()}</p>
-                    </div>
-                    <Badge variant="success">Booked · {b.bookingCode}</Badge>
+              <Card key={req.id} className="space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{req.student.user.name}</p>
+                    <p className="text-sm text-muted">
+                      {req.student.user.email} · {req.student.user.phone || "No phone"}
+                    </p>
+                    <p className="text-sm text-muted">{formatCourseLabel(req.course)}</p>
                   </div>
-                </Card>
-              ))}
+                  <Badge variant="primary">{req.leadStatus}</Badge>
+                </div>
+                <Select
+                  label="Update status"
+                  value={req.leadStatus}
+                  onChange={(e) => updateRequestStatus(req.id, e.target.value)}
+                >
+                  {TABS.filter((t) => t !== "ALL").map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </Select>
+              </Card>
+            ))}
+
+            {bookings.map((b) => (
+              <Card key={b.id} className="space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{b.student.user.name}</p>
+                    <p className="text-sm text-muted">
+                      {b.student.user.email} · {b.student.user.phone || "No phone"}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {b.demoSlot.topic} · {new Date(b.demoSlot.demoDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-muted">{formatCourseLabel(b.course)}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="success">Booked · {b.bookingCode}</Badge>
+                    <Badge variant="primary">{b.leadStatus}</Badge>
+                  </div>
+                </div>
+                <Select
+                  label="Update status"
+                  value={b.leadStatus}
+                  onChange={(e) => updateBookingStatus(b.id, e.target.value)}
+                >
+                  {TABS.filter((t) => t !== "ALL").map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </Select>
+              </Card>
+            ))}
           </>
         )}
       </div>

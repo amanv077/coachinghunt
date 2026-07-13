@@ -19,13 +19,32 @@ import Link from "next/link";
 
 export default function CoachingAnalyticsPage() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/coaching/analytics").then((r) => r.json()).then((d) => d.success && setData(d.data));
+    fetch("/api/coaching/analytics")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setData(d.data);
+        else setError(d.message || "Failed to load analytics");
+      })
+      .catch(() => setError("Failed to load analytics"));
   }, []);
 
-  if (!data) {
+  if (!data && !error) {
     return <Loader fullPage label="Loading analytics…" />;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold">Analytics</h1>
+        <Card className="mt-6 border-danger/30 bg-danger/5">
+          <p className="text-sm text-danger">{error}</p>
+          <Button className="mt-4 min-h-11" onClick={() => window.location.reload()}>Retry</Button>
+        </Card>
+      </div>
+    );
   }
 
   return (

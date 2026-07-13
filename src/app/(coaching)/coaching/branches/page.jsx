@@ -9,19 +9,22 @@ import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { Badge } from "@/components/ui/Badge";
 import { DashboardListSkeleton } from "@/components/ui/DashboardListSkeleton";
 
+const emptyForm = {
+  branchName: "",
+  city: "",
+  locality: "",
+  address: "",
+  phone: "",
+  isPrimary: false,
+};
+
 export default function CoachingBranchesPage() {
   const { addToast } = useToast();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [form, setForm] = useState({
-    branchName: "",
-    city: "",
-    locality: "",
-    address: "",
-    phone: "",
-    isPrimary: false,
-  });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyForm);
 
   async function loadBranches() {
     const res = await fetch("/api/branches");
@@ -33,11 +36,11 @@ export default function CoachingBranchesPage() {
     loadBranches().finally(() => setFetching(false));
   }, []);
 
-  async function handleCreate(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch("/api/branches", {
-      method: "POST",
+    const res = await fetch(editingId ? `/api/branches/${editingId}` : "/api/branches", {
+      method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
@@ -45,15 +48,29 @@ export default function CoachingBranchesPage() {
     setLoading(false);
 
     if (data.success) {
-      setForm({ branchName: "", city: "", locality: "", address: "", phone: "", isPrimary: false });
+      setForm(emptyForm);
+      setEditingId(null);
       loadBranches();
-      addToast("Branch added", "success");
+      addToast(editingId ? "Branch updated" : "Branch added", "success");
     } else {
-      addToast(data.message || "Failed to add branch", "error");
+      addToast(data.message || "Failed to save branch", "error");
     }
   }
 
+  function startEdit(branch) {
+    setEditingId(branch.id);
+    setForm({
+      branchName: branch.branchName || "",
+      city: branch.city || "",
+      locality: branch.locality || "",
+      address: branch.address || "",
+      phone: branch.phone || "",
+      isPrimary: branch.isPrimary || false,
+    });
+  }
+
   async function handleDelete(id) {
+    if (!confirm("Remove this branch? This cannot be undone.")) return;
     const res = await fetch(`/api/branches/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (data.success) {
@@ -72,8 +89,8 @@ export default function CoachingBranchesPage() {
       </div>
 
       <Card className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-foreground">Add branch</h2>
-        <form onSubmit={handleCreate} className="mt-4 space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">{editingId ? "Edit branch" : "Add branch"}</h2>
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <Input
             label="Branch name"
             value={form.branchName}
@@ -94,9 +111,16 @@ export default function CoachingBranchesPage() {
             />
             Set as primary branch
           </label>
-          <Button type="submit" loading={loading} className="min-h-11 w-full sm:w-auto">
-            Add branch
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" loading={loading} className="min-h-11 w-full sm:w-auto">
+              {editingId ? "Save changes" : "Add branch"}
+            </Button>
+            {editingId && (
+              <Button type="button" variant="secondary" className="min-h-11" onClick={() => { setEditingId(null); setForm(emptyForm); }}>
+                Cancel edit
+              </Button>
+            )}
+          </div>
         </form>
       </Card>
 
@@ -121,15 +145,20 @@ export default function CoachingBranchesPage() {
                   {branch.address && <p className="mt-1 text-sm text-muted">{branch.address}</p>}
                   {branch.phone && <p className="mt-1 text-sm text-muted">{branch.phone}</p>}
                 </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="min-h-10 w-full sm:w-auto"
-                  onClick={() => handleDelete(branch.id)}
-                >
-                  Remove
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="secondary" size="sm" className="min-h-10" onClick={() => startEdit(branch)}>
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="min-h-10"
+                    onClick={() => handleDelete(branch.id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>

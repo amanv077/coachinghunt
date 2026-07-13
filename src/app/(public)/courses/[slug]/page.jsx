@@ -43,9 +43,29 @@ export default async function CourseDetailPage({ params }) {
         </div>
         {course.description && <p className="mt-4 text-muted leading-relaxed">{course.description}</p>}
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {course.fees && <div><p className="text-sm text-muted">Fees</p><p className="font-semibold text-primary">₹{course.fees.toLocaleString()}</p></div>}
+          {session?.user ? (
+            <>
+              {course.fees != null && (
+                <div>
+                  <p className="text-sm text-muted">Fees</p>
+                  <p className="font-semibold text-primary">
+                    ₹{(course.discountedFees ?? course.fees).toLocaleString()}
+                  </p>
+                  {course.discountedFees != null && (
+                    <p className="text-xs text-muted line-through">₹{course.fees.toLocaleString()}</p>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="sm:col-span-3">
+              <p className="text-sm text-muted">
+                <Link href="/login" className="text-primary underline">Sign in</Link> to view fees and full course details.
+              </p>
+            </div>
+          )}
           {course.durationText && <div><p className="text-sm text-muted">Duration</p><p className="font-medium">{course.durationText}</p></div>}
-          {course.scheduleSummary && <div><p className="text-sm text-muted">Schedule</p><p className="font-medium">{course.scheduleSummary}</p></div>}
+          {course.scheduleSummary && session?.user && <div><p className="text-sm text-muted">Schedule</p><p className="font-medium">{course.scheduleSummary}</p></div>}
         </div>
       </Card>
 

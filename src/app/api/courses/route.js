@@ -11,6 +11,7 @@ export async function GET(request) {
       targetExam: searchParams.get("targetExam") || undefined,
       classLevel: searchParams.get("classLevel") || undefined,
       courseType: searchParams.get("courseType") || undefined,
+      includeAll: searchParams.get("includeAll") === "true",
     });
     return successResponse(result);
   } catch (error) {

@@ -4,12 +4,36 @@ export async function createReview(studentUserId, data) {
   const student = await prisma.studentProfile.findUnique({ where: { userId: studentUserId } });
   if (!student) throw new Error("Student profile not found");
 
+  const rating = Number(data.rating);
+  if (!rating || rating < 1 || rating > 5) {
+    throw new Error("Rating must be between 1 and 5");
+  }
+
+  const existing = await prisma.review.findUnique({
+    where: { studentId_coachingId: { studentId: student.id, coachingId: data.coachingId } },
+  });
+  if (existing) throw new Error("You have already reviewed this coaching");
+
+  const booking = await prisma.booking.findFirst({
+    where: {
+      studentId: student.id,
+      coachingId: data.coachingId,
+      status: { in: ["CONFIRMED", "ATTENDED"] },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!booking) {
+    throw new Error("You can only review coachings where you have attended or booked a demo");
+  }
+
   return prisma.review.create({
     data: {
       studentId: student.id,
       coachingId: data.coachingId,
-      courseId: data.courseId,
-      rating: data.rating,
+      courseId: data.courseId || booking.courseId,
+      bookingId: booking.id,
+      rating,
       title: data.title,
       comment: data.comment,
       status: "PENDING",
@@ -26,6 +50,7 @@ export async function listReviews(filters = {}) {
     },
     include: {
       student: { include: { user: { select: { name: true } } } },
+      booking: { select: { id: true, status: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -37,7 +62,7 @@ export async function approveReview(reviewId, status) {
     data: { status },
   });
 
-  if (status === "APPROVED") {
+  if (status === "APPROVED" || status === "REJECTED") {
     const stats = await prisma.review.aggregate({
       where: { coachingId: review.coachingId, status: "APPROVED" },
       _avg: { rating: true },
@@ -54,4 +79,24 @@ export async function approveReview(reviewId, status) {
   }
 
   return review;
+}
+
+export async function studentCanReviewCoaching(studentUserId, coachingId) {
+  const student = await prisma.studentProfile.findUnique({ where: { userId: studentUserId } });
+  if (!student) return false;
+
+  const [booking, existingReview] = await Promise.all([
+    prisma.booking.findFirst({
+      where: {
+        studentId: student.id,
+        coachingId,
+        status: { in: ["CONFIRMED", "ATTENDED"] },
+      },
+    }),
+    prisma.review.findUnique({
+      where: { studentId_coachingId: { studentId: student.id, coachingId } },
+    }),
+  ]);
+
+  return !!booking && !existingReview;
 }

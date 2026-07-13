@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { createBooking } from "@/modules/bookings/bookings.service";
 import { createDemoSlot } from "@/modules/demo-slots/demo-slots.service";
+import { sendCoachingDemoRequestEmail } from "@/modules/notifications/email.service";
 import { computeAvgResponseHours } from "@/modules/coachings/coachings.service";
 
 const requestInclude = {
@@ -99,7 +100,19 @@ export async function createDemoRequest(studentUserId, data) {
     throw new Error("You already have a pending request for this coaching");
   }
 
-  return prisma.demoRequest.create({
+  const existingRecent = await prisma.demoRequest.findFirst({
+    where: {
+      studentId: student.id,
+      coachingId: data.coachingId,
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      status: { in: ["PENDING", "APPROVED"] },
+    },
+  });
+  if (existingRecent) {
+    throw new Error("You already submitted a demo request for this coaching recently");
+  }
+
+  const demoRequest = await prisma.demoRequest.create({
     data: {
       studentId: student.id,
       coachingId: data.coachingId,
@@ -111,6 +124,19 @@ export async function createDemoRequest(studentUserId, data) {
     },
     include: requestInclude,
   });
+
+  try {
+    const coachingUser = await prisma.user.findFirst({
+      where: { coachingProfile: { id: data.coachingId } },
+      select: { email: true },
+    });
+    const coachingEmail = coaching.email || coachingUser?.email;
+    await sendCoachingDemoRequestEmail(demoRequest, coachingEmail);
+  } catch (err) {
+    console.error("Coaching demo request email failed:", err);
+  }
+
+  return demoRequest;
 }
 
 export async function getStudentDemoRequests(userId) {

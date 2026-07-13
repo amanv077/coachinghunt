@@ -39,6 +39,16 @@ function FilterForm({ filters, setFilters, onSubmit, onClear, className }) {
         <option value="Boards">Boards</option>
         <option value="Foundation">Foundation</option>
       </Select>
+      <Select
+        label="Mode"
+        value={filters.mode}
+        onChange={(e) => setFilters({ ...filters, mode: e.target.value })}
+      >
+        <option value="">All modes</option>
+        <option value="OFFLINE">Offline</option>
+        <option value="ONLINE">Online</option>
+        <option value="HYBRID">Hybrid</option>
+      </Select>
       <Input
         label="Subject"
         value={filters.subject}
@@ -211,6 +221,7 @@ export function SearchFilters({ mobileOnly = false }) {
     targetExam: searchParams.get("targetExam") || "",
     subject: searchParams.get("subject") || "",
     maxFee: searchParams.get("maxFee") || "",
+    mode: searchParams.get("mode") || "",
   });
 
   function applyFilters(e) {
@@ -220,7 +231,7 @@ export function SearchFilters({ mobileOnly = false }) {
   }
 
   function clearFilters() {
-    setFilters({ q: "", city: "", targetExam: "", subject: "", maxFee: "" });
+    setFilters({ q: "", city: "", targetExam: "", subject: "", maxFee: "", mode: "" });
     router.push("/search");
     setDrawerOpen(false);
   }
@@ -298,6 +309,7 @@ export function ActiveFilterChips() {
     { key: "targetExam", label: searchParams.get("targetExam") },
     { key: "subject", label: searchParams.get("subject") },
     { key: "maxFee", label: searchParams.get("maxFee") ? `Max ₹${searchParams.get("maxFee")}` : null },
+    { key: "mode", label: searchParams.get("mode") },
   ].filter((c) => c.label);
 
   if (chips.length === 0) return null;

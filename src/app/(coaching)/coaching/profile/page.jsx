@@ -12,6 +12,7 @@ import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { ExamMultiSelect } from "@/components/shared/ExamMultiSelect";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { ProfileCompletenessBar } from "@/components/coaching/ProfileCompletenessBar";
+import { ChangePasswordForm } from "@/components/shared/ChangePasswordForm";
 
 const emptyFaculty = { name: "", qualification: "", bio: "", photoUrl: "" };
 
@@ -307,6 +308,10 @@ export default function CoachingProfilePage() {
           </Button>
         </form>
       </Card>
+
+      <div className="mt-6 max-w-2xl">
+        <ChangePasswordForm />
+      </div>
     </div>
   );
 }

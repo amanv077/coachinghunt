@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { ExamMultiSelect } from "@/components/shared/ExamMultiSelect";
+import { ChangePasswordForm } from "@/components/shared/ChangePasswordForm";
 
 function ProfileSkeleton() {
   return (
@@ -51,6 +52,7 @@ export default function StudentProfilePage() {
     schoolName: "",
   });
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     fetch("/api/student/profile")
@@ -64,8 +66,11 @@ export default function StudentProfilePage() {
             targetExams: d.data.targetExams || [],
             schoolName: d.data.schoolName || "",
           });
+        } else {
+          setFetchError(d.message || "Failed to load profile");
         }
-      });
+      })
+      .catch(() => setFetchError("Failed to load profile"));
   }, []);
 
   function startEditing() {
@@ -109,7 +114,20 @@ export default function StudentProfilePage() {
     addToast("Profile updated", "success");
   }
 
-  if (!profile) return <ProfileSkeleton />;
+  if (!profile) {
+    if (fetchError) {
+      return (
+        <div>
+          <h1 className="text-2xl font-bold">My Profile</h1>
+          <Card className="mt-6 border-danger/30 bg-danger/5">
+            <p className="text-sm text-danger">{fetchError}</p>
+            <Button className="mt-4 min-h-11" onClick={() => window.location.reload()}>Retry</Button>
+          </Card>
+        </div>
+      );
+    }
+    return <ProfileSkeleton />;
+  }
 
   return (
     <div>
@@ -192,6 +210,10 @@ export default function StudentProfilePage() {
           </div>
         )}
       </Card>
+
+      <div className="mt-6 max-w-2xl">
+        <ChangePasswordForm />
+      </div>
     </div>
   );
 }

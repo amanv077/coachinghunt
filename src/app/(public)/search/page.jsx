@@ -31,6 +31,7 @@ export default async function SearchPage({ searchParams }) {
       targetExam: params.targetExam,
       subject: params.subject,
       maxFee: params.maxFee ? Number(params.maxFee) : undefined,
+      mode: params.mode,
       page,
       sort: params.sort || "newest",
     }),

@@ -9,7 +9,7 @@ export const publicStudentLinks = [
   { href: "/search", label: "Find Coachings" },
   { href: "/compare", label: "Compare" },
   { href: "/student/bookings", label: "My Bookings" },
-  { href: "/student/offers", label: "My Offers" },
+  { href: "/student/offers", label: "Offers" },
 ];
 
 export const publicCoachingLinks = [

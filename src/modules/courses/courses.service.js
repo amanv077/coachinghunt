@@ -22,8 +22,8 @@ export async function archiveCourse(courseId, coachingId) {
 
 export async function listCourses(filters = {}) {
   const where = {
-    status: filters.status || "ACTIVE",
     ...(filters.coachingId && { coachingId: filters.coachingId }),
+    ...(!filters.includeAll && { status: filters.status || "ACTIVE" }),
     ...(filters.targetExam && { targetExams: { has: filters.targetExam } }),
     ...(filters.classLevel && { classLevel: filters.classLevel }),
     ...(filters.courseType && { courseType: filters.courseType }),
@@ -52,7 +52,15 @@ export async function getCourseBySlugOrId(identifier, isAuthenticated = false) {
   });
 
   if (!course || !isAuthenticated) {
-    return course;
+    if (!course) return null;
+    return {
+      ...course,
+      fees: undefined,
+      discountedFees: undefined,
+      scheduleSummary: undefined,
+      batchSize: undefined,
+      facultySummary: undefined,
+    };
   }
 
   return course;

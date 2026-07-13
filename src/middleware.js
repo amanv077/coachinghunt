@@ -76,6 +76,7 @@ export const config = {
     "/coaching/qa/:path*",
     "/coaching/leads/:path*",
     "/coaching/analytics/:path*",
+    "/coaching/billing/:path*",
     "/admin/:path*",
   ],
 };

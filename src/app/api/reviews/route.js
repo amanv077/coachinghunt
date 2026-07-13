@@ -18,10 +18,17 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") || "APPROVED";
+
+    if (status !== "APPROVED") {
+      const auth = await requireAuth(["ADMIN"]);
+      if (auth.error) return errorResponse(auth.error, [], auth.status);
+    }
+
     const reviews = await listReviews({
       coachingId: searchParams.get("coachingId") || undefined,
       courseId: searchParams.get("courseId") || undefined,
-      status: searchParams.get("status") || "APPROVED",
+      status,
     });
     return successResponse(reviews);
   } catch (error) {

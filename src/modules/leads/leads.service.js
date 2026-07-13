@@ -1,6 +1,43 @@
 import { prisma } from "@/lib/db/prisma";
 
-const PLATFORM_FEE_AMOUNT = Number(process.env.PLATFORM_FEE_AMOUNT || 0);
+export function getPlatformFeeAmount() {
+  const amount = Number(process.env.PLATFORM_FEE_AMOUNT);
+  if (!amount || amount <= 0) {
+    throw new Error("PLATFORM_FEE_AMOUNT must be set to a positive number in environment variables");
+  }
+  return amount;
+}
+
+async function createFeeRecordIfNeeded({ coachingId, demoRequestId, bookingId, enrolledByName }) {
+  const amount = getPlatformFeeAmount();
+  const existing = await prisma.platformFeeRecord.findFirst({
+    where: {
+      ...(demoRequestId ? { demoRequestId } : {}),
+      ...(bookingId ? { bookingId } : {}),
+    },
+  });
+  if (existing) return existing;
+
+  const feeRecord = await prisma.platformFeeRecord.create({
+    data: {
+      coachingId,
+      demoRequestId: demoRequestId || null,
+      bookingId: bookingId || null,
+      enrolledByName,
+      amount,
+      status: "PENDING",
+    },
+  });
+
+  if (demoRequestId) {
+    await prisma.demoRequest.update({
+      where: { id: demoRequestId },
+      data: { isPaidLead: false },
+    });
+  }
+
+  return feeRecord;
+}
 
 export async function listLeads(coachingUserId, { leadStatus } = {}) {
   const coaching = await prisma.coachingProfile.findUnique({ where: { userId: coachingUserId } });
@@ -19,7 +56,10 @@ export async function listLeads(coachingUserId, { leadStatus } = {}) {
       orderBy: { createdAt: "desc" },
     }),
     prisma.booking.findMany({
-      where: { coachingId: coaching.id },
+      where: {
+        coachingId: coaching.id,
+        ...(leadStatus && { leadStatus }),
+      },
       include: {
         student: { include: { user: { select: { name: true, email: true, phone: true } } } },
         course: { select: { title: true, targetExams: true } },
@@ -51,23 +91,63 @@ export async function updateLeadStatus(coachingUserId, demoRequestId, { leadStat
   });
 
   if (leadStatus === "ENROLLED") {
-    const existing = await prisma.platformFeeRecord.findFirst({
-      where: { demoRequestId: demoRequestId },
+    await createFeeRecordIfNeeded({
+      coachingId: coaching.id,
+      demoRequestId,
+      enrolledByName: request.student.user.name,
     });
-    if (!existing) {
-      await prisma.platformFeeRecord.create({
-        data: {
-          coachingId: coaching.id,
-          demoRequestId,
-          enrolledByName: request.student.user.name,
-          amount: PLATFORM_FEE_AMOUNT,
-          status: "PENDING",
-        },
-      });
-    }
   }
 
   return updated;
+}
+
+export async function updateBookingLeadStatus(coachingUserId, bookingId, { leadStatus }) {
+  const coaching = await prisma.coachingProfile.findUnique({ where: { userId: coachingUserId } });
+  if (!coaching) throw new Error("Coaching profile not found");
+
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, coachingId: coaching.id },
+    include: { student: { include: { user: true } } },
+  });
+  if (!booking) throw new Error("Booking lead not found");
+
+  const updated = await prisma.booking.update({
+    where: { id: bookingId },
+    data: { leadStatus },
+  });
+
+  if (leadStatus === "ENROLLED") {
+    await createFeeRecordIfNeeded({
+      coachingId: coaching.id,
+      bookingId,
+      enrolledByName: booking.student.user.name,
+    });
+  }
+
+  return updated;
+}
+
+export async function listCoachFeeRecords(coachingUserId) {
+  const coaching = await prisma.coachingProfile.findUnique({ where: { userId: coachingUserId } });
+  if (!coaching) throw new Error("Coaching profile not found");
+
+  return prisma.platformFeeRecord.findMany({
+    where: { coachingId: coaching.id },
+    include: {
+      demoRequest: {
+        select: {
+          student: { select: { user: { select: { name: true } } } },
+        },
+      },
+      booking: {
+        select: {
+          bookingCode: true,
+          student: { select: { user: { select: { name: true } } } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
 export async function listFeeRecords({ status } = {}) {
@@ -81,8 +161,17 @@ export async function listFeeRecords({ status } = {}) {
 }
 
 export async function updateFeeRecordStatus(id, status) {
-  return prisma.platformFeeRecord.update({
+  const feeRecord = await prisma.platformFeeRecord.update({
     where: { id },
     data: { status },
   });
+
+  if (status === "PAID" && feeRecord.demoRequestId) {
+    await prisma.demoRequest.update({
+      where: { id: feeRecord.demoRequestId },
+      data: { isPaidLead: true },
+    });
+  }
+
+  return feeRecord;
 }

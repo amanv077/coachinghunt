@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { sendEmail } from "@/lib/email/mailer";
 import { successResponse, errorResponse } from "@/lib/utils/api-response";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name is required").max(100),
@@ -9,6 +10,9 @@ const contactSchema = z.object({
 });
 
 export async function POST(request) {
+  const limited = rateLimit(request, "contact", 5, 15 * 60 * 1000);
+  if (limited) return errorResponse("Too many messages. Try again later.", [], 429);
+
   try {
     const body = await request.json();
     const parsed = contactSchema.safeParse(body);
