@@ -1,3 +1,5 @@
+import { resolveExamLabel } from "@/lib/seo/exam-match";
+
 export const KNOWN_EXAMS = ["JEE", "NEET", "Boards", "Foundation", "UPSC", "CA", "CLAT"];
 
 export function examToSlug(exam) {
@@ -5,10 +7,7 @@ export function examToSlug(exam) {
 }
 
 export function slugToExam(slug) {
-  const normalized = slug.replace(/-/g, " ");
-  return KNOWN_EXAMS.find(
-    (exam) => exam.toLowerCase() === normalized.toLowerCase()
-  ) || slug.toUpperCase();
+  return resolveExamLabel(slug);
 }
 
 export function cityToSlug(city) {

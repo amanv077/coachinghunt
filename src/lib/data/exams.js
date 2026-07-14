@@ -2,7 +2,9 @@
 export const EXAMS = [
   "JEE Main",
   "JEE Advanced",
+  "JEE",
   "NEET",
+  "NEET UG",
   "NEET PG",
   "AIIMS",
   "UPSC Civil Services",

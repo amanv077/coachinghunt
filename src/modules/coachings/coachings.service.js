@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/db/prisma";
+import {
+  expandExamFilterValues,
+  countCoachingsForCategory,
+} from "@/lib/seo/exam-match";
+import { KNOWN_EXAMS } from "@/lib/seo/constants";
 import { slugify } from "@/lib/utils/helpers";
 
 const coachingCardSelect = {
@@ -67,7 +72,7 @@ export async function listPublicCoachings({
     verificationStatus: "VERIFIED",
     ...(city && { city: { contains: city, mode: "insensitive" } }),
     ...(locality && { locality: { contains: locality, mode: "insensitive" } }),
-    ...(targetExam && { targetExams: { has: targetExam } }),
+    ...(targetExam && { targetExams: { hasSome: expandExamFilterValues(targetExam) } }),
     ...(subject && { subjects: { has: subject } }),
     ...(mode && { mode }),
     ...(maxFee && {
@@ -128,6 +133,10 @@ export async function getExamCoachingCounts() {
     c.targetExams.forEach((exam) => {
       counts[exam] = (counts[exam] || 0) + 1;
     });
+  });
+  // Homepage chips (JEE / NEET / …) use parent labels — roll up family variants.
+  KNOWN_EXAMS.forEach((category) => {
+    counts[category] = countCoachingsForCategory(coachings, category);
   });
   return counts;
 }

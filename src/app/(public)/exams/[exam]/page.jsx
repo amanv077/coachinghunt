@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listPublicCoachings, getCityExamCombos } from "@/modules/coachings/coachings.service";
 import { CoachingCardGrid } from "@/components/marketing/CoachingCardGrid";
 import { KNOWN_EXAMS, examToSlug, slugToExam, buildCityExamSlug } from "@/lib/seo/constants";
+import { examBelongsToCategory } from "@/lib/seo/exam-match";
 import { buildOgMetadata } from "@/lib/seo/metadata";
 import { Card } from "@/components/ui/Card";
 
@@ -30,7 +31,9 @@ export default async function ExamLandingPage({ params, searchParams }) {
     getCityExamCombos(),
   ]);
 
-  const citiesForExam = cityCombos.filter((c) => c.exam === exam).slice(0, 12);
+  const citiesForExam = cityCombos
+    .filter((c) => examBelongsToCategory(c.exam, exam))
+    .slice(0, 12);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">

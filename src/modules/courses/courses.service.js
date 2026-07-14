@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { slugify } from "@/lib/utils/helpers";
+import { expandExamFilterValues } from "@/lib/seo/exam-match";
 
 export async function createCourse(coachingId, data) {
   const slug = slugify(data.title) + "-" + Date.now().toString(36);
@@ -24,7 +25,7 @@ export async function listCourses(filters = {}) {
   const where = {
     ...(filters.coachingId && { coachingId: filters.coachingId }),
     ...(!filters.includeAll && { status: filters.status || "ACTIVE" }),
-    ...(filters.targetExam && { targetExams: { has: filters.targetExam } }),
+    ...(filters.targetExam && { targetExams: { hasSome: expandExamFilterValues(filters.targetExam) } }),
     ...(filters.classLevel && { classLevel: filters.classLevel }),
     ...(filters.courseType && { courseType: filters.courseType }),
   };
