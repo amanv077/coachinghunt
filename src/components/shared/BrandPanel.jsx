@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { Logo } from "@/components/shared/Logo";
+import { TRUST_STATS } from "@/lib/marketing/trust-stats";
 
 const testimonials = [
   {
@@ -52,14 +53,7 @@ export function BrandPanel() {
 
       {/* Header */}
       <div className="relative z-10">
-        <Link href="/" className="inline-flex items-center gap-2.5 text-2xl font-bold tracking-tight text-white transition-opacity hover:opacity-90">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 font-extrabold text-white shadow-lg shadow-indigo-600/30">
-            C
-          </span>
-          <span>
-            Coaching<span className="text-indigo-400">Hunt</span>
-          </span>
-        </Link>
+        <Logo href="/" size="lg" variant="light" />
       </div>
 
       {/* Mock Visuals Showcase */}
@@ -92,20 +86,18 @@ export function BrandPanel() {
           </div>
         </motion.div>
 
-        {/* Floating Card 2: Interactive Stats & Demo Alerts */}
+        {/* Floating Card 2: Stats & live activity */}
         <div className="flex w-full max-w-sm gap-4">
-          {/* Stats Card */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex-1 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center shadow-xl backdrop-blur-md"
           >
-            <div className="text-2xl font-black text-indigo-400">10,000+</div>
-            <div className="mt-1 text-[10px] font-medium text-white/50 uppercase tracking-wider">Students Guided</div>
+            <div className="text-2xl font-black text-indigo-400">{TRUST_STATS.students.value}</div>
+            <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-white/50">Students Guided</div>
           </motion.div>
 
-          {/* Booking Alert Card */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -113,12 +105,10 @@ export function BrandPanel() {
             className="flex-1 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-xl backdrop-blur-md"
           >
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-300">
-                ⚡
-              </div>
+              <span className="flex h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
               <div>
-                <div className="text-[11px] font-bold text-white">New Demo Booked</div>
-                <div className="text-[9px] text-white/50">Physics Class • 2m ago</div>
+                <div className="text-[11px] font-bold text-white">Live on CoachingHunt</div>
+                <div className="text-[9px] text-white/50">Demo bookings across India</div>
               </div>
             </div>
           </motion.div>

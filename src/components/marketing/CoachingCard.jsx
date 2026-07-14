@@ -105,6 +105,9 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
           {coaching.subjects?.slice(0, 2).map((subject) => (
             <Badge key={subject} variant="default">{subject}</Badge>
           ))}
+          {coaching.facilities?.slice(0, 2).map((facility) => (
+            <Badge key={facility} variant="default">{facility}</Badge>
+          ))}
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
@@ -112,6 +115,11 @@ export function CoachingCard({ coaching, onPreview, isSaved = false, showActions
             <span className="inline-flex items-center gap-1">
               <BookIcon className="h-3.5 w-3.5 text-secondary" />
               {courseCount} course{courseCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          {coaching.foundedYear && (
+            <span className="rounded-full bg-surface-muted px-2 py-0.5 font-medium text-foreground/80">
+              Est. {coaching.foundedYear}
             </span>
           )}
           {coaching.category && (

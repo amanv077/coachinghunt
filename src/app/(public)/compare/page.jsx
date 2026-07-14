@@ -4,8 +4,53 @@ import { prisma } from "@/lib/db/prisma";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { CoachingLogo } from "@/components/shared/CoachingMedia";
+import { CompareEmptyState } from "@/components/marketing/CompareEmptyState";
+import { MobileCompareView } from "@/components/marketing/MobileCompareView";
 
 export const metadata = { title: "Compare Coachings" };
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  if ([lat1, lon1, lat2, lon2].some((v) => v == null || Number.isNaN(Number(v)))) return null;
+  const toRad = (d) => (Number(d) * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatFaculty(facultyProfiles) {
+  if (!facultyProfiles) return "—";
+  const list = Array.isArray(facultyProfiles)
+    ? facultyProfiles
+    : typeof facultyProfiles === "object"
+      ? Object.values(facultyProfiles)
+      : [];
+  if (!list.length) return "—";
+  const names = list
+    .map((f) => (typeof f === "string" ? f : f?.name || f?.title))
+    .filter(Boolean)
+    .slice(0, 2);
+  if (!names.length) return `${list.length} faculty listed`;
+  return names.length < list.length ? `${names.join(", ")} +${list.length - names.length}` : names.join(", ");
+}
+
+function formatBatchSize(courses) {
+  const sizes = courses.map((c) => c.batchSize).filter((n) => n != null && n > 0);
+  if (!sizes.length) return "—";
+  const min = Math.min(...sizes);
+  const max = Math.max(...sizes);
+  return min === max ? `~${min} students` : `${min}–${max} students`;
+}
+
+function formatSchedule(courses) {
+  const summaries = courses.map((c) => c.scheduleSummary || c.durationText).filter(Boolean);
+  if (!summaries.length) return "—";
+  return summaries[0];
+}
 
 export default async function ComparePage({ searchParams }) {
   const params = await searchParams;
@@ -16,22 +61,15 @@ export default async function ComparePage({ searchParams }) {
     .slice(0, 3);
 
   if (ids.length < 2) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6">
-        <h1 className="text-2xl font-bold">Compare coachings</h1>
-        <p className="mt-3 text-muted">
-          Add at least 2 coachings using the highlighted &ldquo;Add to compare&rdquo; button on search or coaching cards.
-        </p>
-        <p className="mt-2 text-sm text-secondary font-medium">Pick up to 3 coachings, then compare side by side.</p>
-        <Link href="/search" className="mt-6 inline-block">
-          <Button className="min-h-11">Find coachings</Button>
-        </Link>
-      </div>
-    );
+    return <CompareEmptyState />;
   }
 
   const coachings = await prisma.coachingProfile.findMany({
-    where: { id: { in: ids }, listingStatus: "ACTIVE", verificationStatus: "VERIFIED" },
+    where: {
+      id: { in: ids },
+      listingStatus: "ACTIVE",
+      verificationStatus: { in: ["VERIFIED", "PENDING"] },
+    },
     include: {
       _count: {
         select: {
@@ -41,7 +79,13 @@ export default async function ComparePage({ searchParams }) {
       },
       courses: {
         where: { status: "ACTIVE" },
-        select: { fees: true, discountedFees: true },
+        select: {
+          fees: true,
+          discountedFees: true,
+          batchSize: true,
+          scheduleSummary: true,
+          durationText: true,
+        },
       },
     },
   });
@@ -50,10 +94,21 @@ export default async function ComparePage({ searchParams }) {
 
   const ordered = ids.map((id) => coachings.find((c) => c.id === id)).filter(Boolean);
 
+  // Relative distance between first and others when geo exists
+  const origin = ordered.find((c) => c.latitude != null && c.longitude != null);
+
   const rows = [
     {
       label: "Location",
       values: ordered.map((c) => [c.locality, c.city].filter(Boolean).join(", ") || "—"),
+    },
+    {
+      label: "Distance",
+      values: ordered.map((c) => {
+        if (!origin || c.id === origin.id) return origin && c.id === origin.id ? "Reference" : "—";
+        const km = haversineKm(origin.latitude, origin.longitude, c.latitude, c.longitude);
+        return km == null ? "—" : `~${km.toFixed(1)} km apart`;
+      }),
     },
     {
       label: "Exams",
@@ -65,19 +120,31 @@ export default async function ComparePage({ searchParams }) {
     },
     {
       label: "Rating",
-      values: ordered.map((c) => `${c.avgRating?.toFixed(1) || "0.0"} (${c.reviewCount} reviews)`),
+      values: ordered.map((c) => `${c.avgRating?.toFixed(1) || "0.0"} (${c.reviewCount || 0})`),
     },
     {
       label: "Courses",
       values: ordered.map((c) => String(c._count.courses)),
     },
     {
+      label: "Batch size",
+      values: ordered.map((c) => formatBatchSize(c.courses)),
+    },
+    {
+      label: "Schedule",
+      values: ordered.map((c) => formatSchedule(c.courses)),
+    },
+    {
       label: "Open demos",
       values: ordered.map((c) => String(c._count.demoSlots)),
     },
     {
+      label: "Faculty",
+      values: ordered.map((c) => formatFaculty(c.facultyProfiles)),
+    },
+    {
       label: "Verified",
-      values: ordered.map((c) => (c.verificationStatus === "VERIFIED" ? "Yes" : "No")),
+      values: ordered.map((c) => (c.verificationStatus === "VERIFIED" ? "Yes" : "Pending")),
     },
     {
       label: "Fee range",
@@ -102,38 +169,25 @@ export default async function ComparePage({ searchParams }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold sm:text-3xl">Compare coachings</h1>
-          <p className="mt-1 text-sm text-muted">Side-by-side view to help you decide faster.</p>
+          <p className="mt-1 text-sm text-muted">
+            Side-by-side view of fees, batches, schedule, and demos.
+          </p>
         </div>
-        <Link href="/search">
-          <Button variant="secondary" className="min-h-11 w-full sm:w-auto">
-            Back to search
-          </Button>
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Link href="/student/saved">
+            <Button variant="secondary" className="min-h-11 w-full sm:w-auto">
+              Saved list
+            </Button>
+          </Link>
+          <Link href="/search">
+            <Button variant="secondary" className="min-h-11 w-full sm:w-auto">
+              Back to search
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-8 space-y-4 md:hidden">
-        {ordered.map((coaching) => (
-          <Card key={coaching.id} className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold text-foreground">{coaching.name}</p>
-                {coaching.verificationStatus === "VERIFIED" && <Badge variant="success" className="mt-2">Verified</Badge>}
-              </div>
-              <Link href={`/coaching/${coaching.slug}`}>
-                <Button size="sm" className="min-h-9">View</Button>
-              </Link>
-            </div>
-            {rows.map((row) => (
-              <div key={row.label} className="flex justify-between gap-4 border-t border-border pt-2 text-sm">
-                <span className="text-muted">{row.label}</span>
-                <span className="text-right font-medium text-foreground">
-                  {row.values[ordered.indexOf(coaching)]}
-                </span>
-              </div>
-            ))}
-          </Card>
-        ))}
-      </div>
+      <MobileCompareView ordered={ordered} rows={rows} />
 
       <div className="mt-8 hidden overflow-x-auto md:block">
         <table className="min-w-full border-collapse">
@@ -141,14 +195,23 @@ export default async function ComparePage({ searchParams }) {
             <tr>
               <th className="sticky left-0 z-10 bg-white p-3 text-left text-sm font-semibold text-muted" />
               {ordered.map((coaching) => (
-                <th key={coaching.id} className="min-w-[200px] p-3 text-left align-top">
+                <th key={coaching.id} className="min-w-[220px] p-3 text-left align-top">
                   <Card className="!p-4">
-                    <p className="font-semibold text-foreground">{coaching.name}</p>
-                    {coaching.verificationStatus === "VERIFIED" && (
-                      <Badge variant="success" className="mt-2">Verified</Badge>
-                    )}
-                    <Link href={`/coaching/${coaching.slug}`} className="mt-3 inline-block">
-                      <Button size="sm" className="min-h-9 w-full">View profile</Button>
+                    <div className="flex items-start gap-3">
+                      <CoachingLogo src={coaching.logoUrl} name={coaching.name} size="sm" />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground">{coaching.name}</p>
+                        {coaching.verificationStatus === "VERIFIED" && (
+                          <Badge variant="success" className="mt-2">
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Link href={`/coaching/${coaching.slug}`} className="mt-3 inline-block w-full">
+                      <Button size="sm" className="min-h-9 w-full">
+                        View profile
+                      </Button>
                     </Link>
                   </Card>
                 </th>

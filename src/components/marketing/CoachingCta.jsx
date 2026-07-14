@@ -3,21 +3,19 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { TRUST_STATS } from "@/lib/marketing/trust-stats";
 
 const stats = [
-  { label: "Institutes listed", value: "500+" },
+  { label: TRUST_STATS.coachings.label, value: TRUST_STATS.coachings.value },
   { label: "Demo booking fee", value: "₹0 Free" },
   { label: "Student visibility", value: "Instant" },
 ];
 
 export function CoachingCta() {
   return (
-    <section className="navy-gradient relative overflow-hidden py-16 sm:py-24 text-white">
-      {/* Radial overlay */}
+    <section className="navy-gradient relative overflow-hidden py-16 text-white sm:py-24">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.08),transparent_60%)]" />
-      
-      {/* Decorative vector grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px]" />
 
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
@@ -25,7 +23,7 @@ export function CoachingCta() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-xs font-bold tracking-widest text-secondary-muted uppercase"
+            className="text-xs font-bold uppercase tracking-widest text-secondary-muted"
           >
             GROW YOUR ACADEMY
           </motion.p>
@@ -48,7 +46,6 @@ export function CoachingCta() {
           </motion.p>
         </div>
 
-        {/* Feature quick stats for institutes */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -58,7 +55,7 @@ export function CoachingCta() {
         >
           {stats.map((stat) => (
             <div key={stat.label}>
-              <p className="text-xl font-extrabold sm:text-3xl text-white">{stat.value}</p>
+              <p className="text-xl font-extrabold text-white sm:text-3xl">{stat.value}</p>
               <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-secondary-muted sm:text-xs">
                 {stat.label}
               </p>
@@ -66,7 +63,6 @@ export function CoachingCta() {
           ))}
         </motion.div>
 
-        {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -78,7 +74,7 @@ export function CoachingCta() {
             <Button
               size="lg"
               variant="secondary"
-              className="w-full min-h-12 bg-white text-secondary hover:bg-secondary-light border-0 font-bold px-8 shadow-md"
+              className="min-h-12 w-full border-0 bg-white px-8 font-bold text-secondary shadow-md hover:bg-secondary-light"
             >
               List Your Institute - Free
             </Button>
@@ -87,7 +83,7 @@ export function CoachingCta() {
             <Button
               size="lg"
               variant="ghost"
-              className="w-full min-h-12 border border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold px-8"
+              className="min-h-12 w-full border border-white/20 px-8 font-semibold text-white hover:bg-white/10 hover:text-white"
             >
               Contact Support
             </Button>

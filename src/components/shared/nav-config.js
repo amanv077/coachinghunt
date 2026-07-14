@@ -7,7 +7,7 @@ export const publicGuestLinks = [
 export const publicStudentLinks = [
   { href: "/student/dashboard", label: "Dashboard" },
   { href: "/search", label: "Find Coachings" },
-  { href: "/compare", label: "Compare" },
+  { href: "/student/saved", label: "Saved" },
   { href: "/student/bookings", label: "My Bookings" },
   { href: "/student/offers", label: "Offers" },
 ];
@@ -47,8 +47,8 @@ export function getQuickAction(variant, role) {
 
 export function isNavLinkActive(pathname, href) {
   const baseHref = href.split("?")[0];
-  if (baseHref === "/compare") {
-    return pathname === "/compare";
+  if (baseHref === "/compare" || baseHref === "/student/saved") {
+    return pathname === "/compare" || pathname === "/student/saved" || pathname.startsWith("/compare");
   }
   if (baseHref === "/coaching/dashboard" || baseHref === "/admin/dashboard" || baseHref === "/student/dashboard") {
     return pathname === baseHref;

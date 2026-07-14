@@ -19,7 +19,7 @@ export function StudentDashboardShell({ children }) {
   const compareHref =
     compareList.length >= 2
       ? `/compare?ids=${compareList.map((item) => item.id).join(",")}`
-      : "/compare";
+      : "/student/saved";
 
   const items = [
     { href: "/student/dashboard", label: "Overview", icon: <OverviewIcon /> },
@@ -29,7 +29,7 @@ export function StudentDashboardShell({ children }) {
       href: compareHref,
       label: "Compare",
       icon: <CompareIcon />,
-      highlight: true,
+      highlight: compareList.length >= 2,
       badge: compareList.length > 0 ? String(compareList.length) : null,
     },
     { href: "/student/bookings", label: "My Bookings", icon: <BookingsIcon /> },

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Logo } from "@/components/shared/Logo";
+import { getWhatsAppHref } from "@/lib/marketing/contact";
 
 export function Footer() {
+  const whatsappHref = getWhatsAppHref();
+
   return (
     <footer className="mt-auto border-t border-border bg-white">
       <div className="navy-gradient px-4 py-12 sm:px-6">
@@ -29,6 +32,14 @@ export function Footer() {
               >
                 Find Coachings
               </Link>
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-11 rounded-xl border border-white/30 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Chat on WhatsApp
+              </a>
               <Link
                 href="/signup/coaching"
                 className="min-h-11 rounded-xl border border-white/30 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/10"
@@ -40,7 +51,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-4 sm:px-6">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 md:grid-cols-4">
         <div>
           <h4 className="text-sm font-semibold text-foreground">Explore</h4>
           <ul className="mt-3 space-y-2.5 text-sm text-muted">
@@ -56,7 +67,7 @@ export function Footer() {
           <h4 className="text-sm font-semibold text-foreground">For Students</h4>
           <ul className="mt-3 space-y-2.5 text-sm text-muted">
             <li><Link href="/signup" className="transition hover:text-secondary">Create Account</Link></li>
-            <li><Link href="/compare" className="transition hover:text-secondary">Compare Coachings</Link></li>
+            <li><Link href="/student/saved" className="transition hover:text-secondary">Saved &amp; Compare</Link></li>
             <li><Link href="/login" className="transition hover:text-secondary">Student Login</Link></li>
           </ul>
         </div>
@@ -68,10 +79,15 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="text-sm font-semibold text-foreground">Legal</h4>
+          <h4 className="text-sm font-semibold text-foreground">Legal &amp; support</h4>
           <ul className="mt-3 space-y-2.5 text-sm text-muted">
             <li><Link href="/privacy" className="transition hover:text-secondary">Privacy Policy</Link></li>
             <li><Link href="/terms" className="transition hover:text-secondary">Terms of Service</Link></li>
+            <li>
+              <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="transition hover:text-secondary">
+                WhatsApp support
+              </a>
+            </li>
           </ul>
         </div>
       </div>

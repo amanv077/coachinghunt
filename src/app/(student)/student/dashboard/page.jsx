@@ -84,16 +84,7 @@ export default async function StudentDashboardPage() {
           </Link>
           <Link href="/student/saved" className="w-full sm:w-auto">
             <Button variant="secondary" size="md" className="w-full min-h-11 sm:min-w-[120px]">
-              Saved
-            </Button>
-          </Link>
-          <Link href="/compare" className="w-full sm:w-auto">
-            <Button
-              variant="secondary"
-              size="md"
-              className="w-full min-h-11 border-2 border-secondary bg-secondary-light text-secondary sm:min-w-[120px]"
-            >
-              Compare
+              Saved & Compare
             </Button>
           </Link>
         </div>

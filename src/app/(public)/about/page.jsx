@@ -1,18 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-
-const stats = [
-  { value: "500+", label: "Coachings listed" },
-  { value: "10k+", label: "Demo bookings" },
-  { value: "50+", label: "Cities covered" },
-];
+import { TRUST_STATS_LIST } from "@/lib/marketing/trust-stats";
 
 export const metadata = { title: "About Us" };
 
 export default function AboutPage() {
   return (
     <div>
-      {/* Hero */}
       <section className="hero-gradient py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <span className="text-xs font-semibold uppercase tracking-wider text-secondary">
@@ -28,10 +22,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="border-b border-border bg-white py-12">
         <div className="mx-auto grid max-w-4xl grid-cols-3 gap-6 px-4 sm:px-6">
-          {stats.map((stat) => (
+          {TRUST_STATS_LIST.map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="text-2xl font-bold text-secondary sm:text-3xl">{stat.value}</p>
               <p className="mt-1 text-xs text-muted sm:text-sm">{stat.label}</p>
@@ -40,11 +33,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Story */}
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Our story</h2>
-          <div className="mt-6 space-y-4 text-muted leading-relaxed">
+          <div className="mt-6 space-y-4 leading-relaxed text-muted">
             <p>
               Choosing the right coaching institute is one of the most important decisions a student
               makes. Yet for decades, families have relied on word-of-mouth, pamphlets, and random
@@ -63,7 +55,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="navy-gradient py-16 text-center text-white sm:py-20">
         <div className="mx-auto max-w-xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold sm:text-3xl">Ready to find your coaching?</h2>

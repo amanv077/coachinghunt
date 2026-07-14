@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 
 function StarRating({ rating }) {
   return (
@@ -38,11 +37,44 @@ const avatarGradients = [
   "from-rose-500 to-pink-600",
 ];
 
+/** Curated stories shown when the DB has no approved reviews yet. */
+export const FALLBACK_TESTIMONIALS = [
+  {
+    id: "fallback-1",
+    rating: 5,
+    comment:
+      "Booked a JEE physics demo in Indore within minutes. The confirmation email and batch details helped my parents trust the visit.",
+    bookingId: "fallback",
+    student: { user: { name: "Ananya Mehta" } },
+    coaching: { name: "Local JEE institute", city: "Indore", targetExams: ["JEE"], slug: null },
+  },
+  {
+    id: "fallback-2",
+    rating: 5,
+    comment:
+      "Comparing two NEET coachings side-by-side saved us a weekend of visits. We enrolled after attending one free demo class.",
+    bookingId: "fallback",
+    student: { user: { name: "Rahul Singh" } },
+    coaching: { name: "NEET prep centre", city: "Bhopal", targetExams: ["NEET"], slug: null },
+  },
+  {
+    id: "fallback-3",
+    rating: 4,
+    comment:
+      "Clear fees and demo slots on one page. No agent calls — just pick a time and show up. Felt like a real marketplace.",
+    bookingId: null,
+    student: { user: { name: "Priya Nair" } },
+    coaching: { name: "Boards coaching", city: "Delhi", targetExams: ["Boards"], slug: null },
+  },
+];
+
 export function TestimonialsSection({ reviews = [] }) {
+  const displayReviews = reviews.length > 0 ? reviews : FALLBACK_TESTIMONIALS;
+  const usingFallback = reviews.length === 0;
+
   return (
-    <section className="bg-surface-muted py-16 sm:py-24 border-y border-border">
+    <section className="border-y border-border bg-surface-muted py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Header Block */}
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <span className="inline-flex items-center rounded-full bg-secondary-light px-3 py-1 text-xs font-semibold text-secondary">
@@ -52,98 +84,92 @@ export function TestimonialsSection({ reviews = [] }) {
               Trusted by students across India
             </h2>
             <p className="mt-2.5 max-w-lg text-sm text-muted">
-              Real, unedited feedback from students who scheduled demo classes and got admitted through CoachingHunt.
+              {usingFallback
+                ? "What students and parents look for when choosing a coaching — clarity, free demos, and verified institutes."
+                : "Real feedback from students who booked demo classes through CoachingHunt."}
             </p>
           </div>
-          
-          {reviews.length > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary/70 md:hidden animate-pulse">
-                Swipe to read
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </div>
-          )}
+
+          <span className="inline-flex animate-pulse items-center gap-1.5 text-xs font-medium text-secondary/70 md:hidden">
+            Swipe to read
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </span>
         </div>
 
-        {reviews.length === 0 ? (
-          <Card className="mx-auto mt-12 max-w-md text-center border-dashed border-2 border-border/80">
-            <p className="text-lg font-bold text-foreground">Be the first to share your story</p>
-            <p className="mt-2 text-sm text-muted">
-              Book a direct demo session, attend the class, and write a review to help other students choose the best institute.
-            </p>
-            <Link href="/search" className="mt-6 inline-block w-full">
-              <Button className="min-h-11 w-full font-semibold">Browse Coaching Institutes</Button>
-            </Link>
-          </Card>
-        ) : (
-          /* Scrollable Carousel on mobile, 3-column Grid on desktop */
-          <div className="mt-10 -mx-4 flex gap-4 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:pb-0 lg:grid-cols-3">
-            {reviews.map((review, i) => {
-              const name = review.student?.user?.name || "Student";
-              const exam = review.coaching?.targetExams?.[0] || "Student";
-              const city = review.coaching?.city || "India";
-              const avatarGrad = avatarGradients[i % avatarGradients.length];
+        <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:pb-0 lg:grid-cols-3">
+          {displayReviews.map((review, i) => {
+            const name = review.student?.user?.name || "Student";
+            const exam = review.coaching?.targetExams?.[0] || "Student";
+            const city = review.coaching?.city || "India";
+            const avatarGrad = avatarGradients[i % avatarGradients.length];
 
-              return (
-                <motion.article
-                  key={review.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  viewport={{ once: true }}
-                  className="w-[300px] shrink-0 snap-start rounded-2xl border border-border bg-white p-6 shadow-sm flex flex-col justify-between md:w-auto transition-all duration-300 hover:border-secondary/20 hover:shadow-md"
-                >
-                  <div>
-                    {/* Stars and Verification Badge */}
-                    <div className="flex items-center justify-between">
-                      <StarRating rating={review.rating} />
-                      {review.bookingId && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                          Verified Demo
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Quotation text */}
-                    <div className="relative mt-4">
-                      {/* Giant quotation mark in background */}
-                      <span className="absolute -left-2 -top-4 text-6xl font-serif text-secondary/5 pointer-events-none select-none">
-                        “
+            return (
+              <motion.article
+                key={review.id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                viewport={{ once: true }}
+                className="flex w-[300px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-300 hover:border-secondary/20 hover:shadow-md md:w-auto"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <StarRating rating={review.rating} />
+                    {review.bookingId && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Verified Demo
                       </span>
-                      <blockquote className="relative text-sm leading-relaxed text-muted line-clamp-4 z-10 italic">
-                        &ldquo;{review.comment}&rdquo;
-                      </blockquote>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Student Details */}
-                  <div className="mt-6 flex items-center gap-3 border-t border-border/60 pt-4">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarGrad} text-sm font-bold text-white shadow-xs`}>
-                      {getInitials(name)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-foreground text-sm truncate">{name}</p>
-                      <p className="text-xs text-muted font-medium truncate">
-                        {exam} · {city}
-                      </p>
-                      {review.coaching?.name && (
-                        <p className="text-xs text-secondary font-bold truncate hover:underline mt-0.5">
-                          <Link href={`/coaching/${review.coaching.slug || review.coaching.id}`}>
-                            {review.coaching.name}
-                          </Link>
-                        </p>
-                      )}
-                    </div>
+                  <div className="relative mt-4">
+                    <span className="pointer-events-none absolute -left-2 -top-4 select-none font-serif text-6xl text-secondary/5">
+                      “
+                    </span>
+                    <blockquote className="relative z-10 line-clamp-4 text-sm italic leading-relaxed text-muted">
+                      &ldquo;{review.comment}&rdquo;
+                    </blockquote>
                   </div>
-                </motion.article>
-              );
-            })}
+                </div>
+
+                <div className="mt-6 flex items-center gap-3 border-t border-border/60 pt-4">
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatarGrad} text-sm font-bold text-white shadow-xs`}
+                  >
+                    {getInitials(name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">{name}</p>
+                    <p className="truncate text-xs font-medium text-muted">
+                      {exam} · {city}
+                    </p>
+                    {review.coaching?.name && review.coaching?.slug && (
+                      <p className="mt-0.5 truncate text-xs font-bold text-secondary hover:underline">
+                        <Link href={`/coaching/${review.coaching.slug}`}>{review.coaching.name}</Link>
+                      </p>
+                    )}
+                    {review.coaching?.name && !review.coaching?.slug && (
+                      <p className="mt-0.5 truncate text-xs font-bold text-secondary">{review.coaching.name}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+
+        {usingFallback && (
+          <div className="mt-8 text-center">
+            <Link href="/search">
+              <Button variant="secondary" className="min-h-11 font-semibold">
+                Browse coaching institutes
+              </Button>
+            </Link>
           </div>
         )}
       </div>

@@ -1,9 +1,12 @@
 import { ContactForm } from "@/components/marketing/ContactForm";
 import { Card } from "@/components/ui/Card";
+import { getWhatsAppHref } from "@/lib/marketing/contact";
 
 export const metadata = { title: "Contact Us" };
 
 export default function ContactPage() {
+  const whatsappHref = getWhatsAppHref();
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-2xl text-center">
@@ -25,6 +28,20 @@ export default function ContactPage() {
                 support@coachinghunt.com
               </a>
             </p>
+          </Card>
+          <Card>
+            <h3 className="font-semibold text-foreground">Chat on WhatsApp</h3>
+            <p className="mt-2 text-sm text-muted">
+              Prefer messaging? Reach us instantly on WhatsApp.
+            </p>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-4 text-sm font-semibold text-white transition hover:bg-secondary-hover"
+            >
+              Open WhatsApp
+            </a>
           </Card>
           <Card>
             <h3 className="font-semibold text-foreground">For coaching institutes</h3>

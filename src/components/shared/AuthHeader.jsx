@@ -3,11 +3,14 @@ import { Logo } from "@/components/shared/Logo";
 
 export function AuthHeader() {
   return (
-    <div className="mb-8 flex items-center justify-between gap-4">
-      <Logo href="/" size="md" />
+    <div className="mb-6 flex items-center justify-between gap-4 md:mb-8">
+      <div className="hidden md:block">
+        <Logo href="/" size="md" />
+      </div>
+      <div className="md:hidden" aria-hidden />
       <Link
         href="/"
-        className="group inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-1.5 text-xs font-semibold text-muted shadow-xs transition hover:border-secondary-muted hover:bg-secondary-light/40 hover:text-secondary"
+        className="group inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-1.5 text-xs font-semibold text-muted shadow-xs transition hover:border-secondary-muted hover:bg-secondary-light/40 hover:text-secondary"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -26,4 +29,3 @@ export function AuthHeader() {
     </div>
   );
 }
-

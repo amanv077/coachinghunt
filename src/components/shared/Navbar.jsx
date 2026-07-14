@@ -8,6 +8,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/shared/Logo";
 import { NavbarSearch } from "@/components/shared/NavbarSearch";
+import { CompareNavLink } from "@/components/shared/CompareNavLink";
 import {
   getPublicNavLinks,
   getQuickAction,
@@ -318,7 +319,12 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
   const showDesktopNav = !isDashboard;
   const showMobileMenuButton = !isDashboard || sidebarItems.length > 0;
   const isSearchPage = pathname === "/search" || pathname.startsWith("/search/");
-  const showSearchBar = !isSearchPage && (variant === "student" || !isDashboard);
+  const isHomePage = pathname === "/";
+  // Homepage already has a full hero search — hide the compact navbar search there for guests.
+  const showSearchBar =
+    !isSearchPage &&
+    !(isHomePage && variant === "public") &&
+    (variant === "student" || !isDashboard);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -504,13 +510,13 @@ export function Navbar({ variant = "public", sidebarItems = [], hideLogoOnDeskto
                 >
                   Saved coachings
                 </Link>
-                <Link
-                  href="/compare"
+                <CompareNavLink
+                  isStudent
                   onClick={closeMenu}
-                  className="flex min-h-11 items-center gap-3 rounded-xl border border-secondary/20 bg-secondary-light px-3.5 text-sm font-semibold text-secondary transition hover:bg-secondary hover:text-white"
+                  className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-white px-3.5 text-sm font-medium text-foreground transition hover:border-secondary/30 hover:bg-secondary-light hover:text-secondary"
                 >
-                  Compare coachings
-                </Link>
+                  {(count) => (count >= 2 ? `Compare now (${count})` : "Compare coachings")}
+                </CompareNavLink>
               </>
             )}
           </div>

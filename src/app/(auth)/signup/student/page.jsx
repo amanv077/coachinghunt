@@ -10,6 +10,7 @@ import { AuthInput } from "@/components/shared/AuthInput";
 import { Button } from "@/components/ui/Button";
 import { SignupRoleTabs } from "@/components/shared/SignupRoleTabs";
 import { TermsConsentCheckbox } from "@/components/shared/TermsConsentCheckbox";
+import { TRUST_STATS } from "@/lib/marketing/trust-stats";
 
 // Vector Icons
 const UserIcon = (props) => (
@@ -110,7 +111,7 @@ export default function StudentSignupPage() {
           <p className="mt-1.5 text-sm text-muted">Book free demo sessions & compare rating results</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-secondary/5 px-2.5 py-1 text-xs font-semibold text-secondary">
             <span className="flex h-1.5 w-1.5 rounded-full bg-secondary" />
-            10,000+ students trust CoachingHunt
+            {TRUST_STATS.students.value} students trust CoachingHunt
           </div>
         </div>
 

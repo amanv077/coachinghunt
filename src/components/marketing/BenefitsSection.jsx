@@ -54,17 +54,16 @@ export function BenefitsSection() {
                   <span>Search institutes by city, locality, exam, and subjects.</span>
                 </li>
                 
-                {/* Highlighted Compare Feature */}
-                <li className="flex items-start gap-3 text-sm text-muted bg-white/70 border border-secondary/10 p-3.5 rounded-xl shadow-xs">
+                <li className="flex items-start gap-3 rounded-xl border border-secondary/10 bg-white/70 p-3.5 text-sm text-muted shadow-xs">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success text-white shadow-xs">
                     <CheckIcon />
                   </span>
                   <div>
-                    <span className="font-bold text-foreground block text-xs tracking-wider uppercase text-secondary">
-                      ⭐ Compare Tool Built-In
+                    <span className="block text-xs font-bold uppercase tracking-wider text-secondary">
+                      Compare before you visit
                     </span>
                     <span className="mt-1 block text-sm">
-                      Select multiple coachings and compare fees, batch sizes, distance, and faculty side-by-side before booking.
+                      Shortlist up to 3 coachings and compare fees, batch size, schedule, and open demos side-by-side.
                     </span>
                   </div>
                 </li>
